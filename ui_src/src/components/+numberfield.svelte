@@ -9,6 +9,7 @@
     min = -Infinity,
     max = Infinity,
     wrap = 0,
+    wheel = 0,
     unit = '',
     onchange,
   }: {
@@ -19,6 +20,7 @@
     min?: number
     max?: number
     wrap?: number
+    wheel?: number
     unit?: string
     onchange: (value: number) => void
   } = $props()
@@ -69,9 +71,26 @@
     draft = fixed(next, digits)
     if (next !== value) onchange(next)
   }
+
+  function scroll(node: HTMLElement) {
+    const listener = (event: WheelEvent) => {
+      if (wheel <= 0 || event.deltaY === 0) return
+
+      event.preventDefault()
+
+      const next = normalize(value + (event.deltaY < 0 ? wheel : -wheel))
+
+      draft = fixed(next, digits)
+      if (next !== value) onchange(next)
+    }
+
+    node.addEventListener('wheel', listener, { passive: false })
+
+    return () => node.removeEventListener('wheel', listener)
+  }
 </script>
 
-<label class="field">
+<label class="field" {@attach scroll}>
   <span class="label">{label}</span>
   <input class="num" type="text" inputmode="decimal" spellcheck="false" value={shown} {oninput} {onfocus} {onblur} {onkeydown} />
   {#if unit}<span class="unit">{unit}</span>{/if}

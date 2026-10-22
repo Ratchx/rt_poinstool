@@ -14,6 +14,7 @@
   type FlagKey = 'blip' | 'area'
 
   const AXIS_STEP = 0.1
+  const Z_WHEEL_STEP = 0.5
   const HEADING_STEP = 1
   const BLIP_SCALE_STEP = 0.1
 
@@ -103,7 +104,7 @@
     <div class="axes">
       <NumberField label="X" value={point.x} {digits} step={AXIS_STEP} onchange={(value) => set('x', value)} />
       <NumberField label="Y" value={point.y} {digits} step={AXIS_STEP} onchange={(value) => set('y', value)} />
-      <NumberField label="Z" value={point.z} {digits} step={AXIS_STEP} onchange={(value) => set('z', value)} />
+      <NumberField label="Z" value={point.z} {digits} step={AXIS_STEP} wheel={Z_WHEEL_STEP} onchange={(value) => set('z', value)} />
     </div>
 
     <div class="actions">
