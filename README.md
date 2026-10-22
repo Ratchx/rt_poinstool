@@ -18,12 +18,13 @@
 ผู้เล่นเปลี่ยนปุ่มเองได้ที่ Settings → Key Bindings → FiveM (คำอธิบายเป็นภาษาอังกฤษ เพราะเมนูของเกมแสดงภาษาไทยไม่ได้)
 
 ในเกมแต่ละจุดจะมี
-- วงทรงกระบอกบนพื้น กว้างเท่ารัศมี × 2
+- วงแหวนเส้นบาง ๆ บนพื้นตามรัศมีของจุด (บอกระยะ)
+- marker ทรงกระบอกบนพื้น ขนาด X / Y / Z และสีตั้งแยกได้ทุกจุด (ไม่ผูกกับรัศมี)
 - เส้นตั้งจากพื้นถึงตำแหน่งจริงของจุด และจุดเล็กตรงตำแหน่งนั้น
 - เส้นแนวนอนชี้ทิศที่หันหน้า (heading ที่จะออกไปใน `vec4`)
 - ป้าย `#ลำดับ  รัศมีm` และชื่อจุดถ้าเป็นภาษาอังกฤษ (ฟอนต์ของเกมไม่มีภาษาไทย ชื่อภาษาไทยจึงเห็นได้เฉพาะใน UI)
 
-จุดที่เลือกอยู่ในรายการจะสว่างกว่าจุดอื่น วาดเฉพาะจุดที่อยู่ในระยะ `Config.Draw.distance` + รัศมีของจุดนั้น (ใช้ `lib.points` ไม่มี loop วัดระยะเอง)
+วงแหวนของจุดที่เลือกอยู่ในรายการจะเป็นสีขาวเต็ม จุดอื่นจะจางกว่า วาดเฉพาะจุดที่อยู่ในระยะ `Config.Draw.distance` + รัศมีของจุดนั้น (ใช้ `lib.points` ไม่มี loop วัดระยะเอง)
 
 ### หน้ารายการ
 
@@ -42,6 +43,16 @@
 - **ลบจุด** ต้องกดสองครั้งภายใน 3 วินาที ลำดับจุดที่อยู่หลังจะเลื่อนขึ้นมา
 - ปุ่ม vec3 / vec4 คัดลอกค่าของจุดนั้นลง clipboard
 - แถวในรายการมีป้าย `prop` / `blip` บอกว่าจุดนั้นมี prop หรือ blip
+
+### Marker
+
+ส่วน **Marker** ในหน้าแก้ไขจุด ตั้งหน้าตา marker ที่วาดบนพื้นของแต่ละจุด
+
+- **X / Y / Z** = ขนาด marker (กว้าง / ยาว / สูง เป็นเมตร) พิมพ์ได้ กดลูกศรได้ หรือ scroll เมาส์ทีละ ±0.1 ค่าอยู่ในช่วง `Config.Marker.size_min`–`size_max`
+- **X = Y** ติ๊กไว้ แก้ X หรือ Y ช่องเดียว อีกช่องจะเปลี่ยนตาม (ติ๊กให้เองถ้า X กับ Y เท่ากันอยู่แล้ว)
+- **เท่ารัศมี** ตั้ง X และ Y = รัศมี × 2 ให้ marker กว้างพอดีวงแหวน
+- **สี** พิมพ์ hex เช่น `#FF3B30` หรือกดสีสำเร็จรูปด้านล่าง ช่อง **A** = ความทึบ 0–255 (scroll ทีละ ±5, 0 = ไม่วาด marker) กล่องซ้ายสุดแสดงสีจริงทั้งแบบโปร่งและทึบ
+- จุดใหม่ใช้ขนาดและสีจาก `Config.Marker.size` / `Config.Marker.color`
 
 ### Prop
 
@@ -73,6 +84,7 @@
 | + ใส่รัศมี | `{ coords = vec3(...), radius = 2.00 },` |
 | + ใส่ชื่อ | `{ label = 'ชื่อ', coords = vec3(...), radius = 2.00 },` (จุดที่ไม่มีชื่อจะไม่มี `label`) |
 | + ใส่โมเดล | ``{ coords = vec3(...), model = `prop_bench_01a` },`` (เฉพาะจุดที่มี prop) |
+| + ใส่ marker | `{ coords = vec3(...), marker = { size = vec3(1.50, 1.50, 0.50), color = { 255, 255, 255, 90 } } },` (ทุกจุด) |
 | + ใส่ blip | `{ coords = vec3(...), blip = { sprite = 280, color = 5, scale = 0.80 } },` (เฉพาะจุดที่เปิด blip หรือวงบนแผนที่) |
 
 ใน `blip = { ... }`
@@ -80,7 +92,7 @@
 - `color` มีเสมอ
 - `area = true` มีเฉพาะจุดที่เปิด **วงรัศมีบนแผนที่** เช่นเปิดแค่วง จะได้ `blip = { color = 1, area = true }`
 
-ลำดับ field ในแต่ละบรรทัด: `label`, `coords`, `radius`, `model`, `blip` ถ้าไม่ได้เลือกอะไรเพิ่มหรือจุดนั้นไม่มีค่าที่เลือก จะได้แค่ `vec3(...)` / `vec4(...)`
+ลำดับ field ในแต่ละบรรทัด: `label`, `coords`, `radius`, `marker`, `model`, `blip` ถ้าไม่ได้เลือกอะไรเพิ่มหรือจุดนั้นไม่มีค่าที่เลือก จะได้แค่ `vec3(...)` / `vec4(...)`
 
 `'` และ `\` ในชื่อจะถูก escape ให้เป็น string ของ Lua ที่ถูกต้อง โมเดลออกมาเป็น backtick hash ตามแบบ config ของเรา ตัวเลือกที่เลือกไว้จำไว้ในเครื่อง (localStorage ของ NUI) ค่าเริ่มต้นคือ vec3 + ใส่รัศมี + ใส่โมเดล
 
@@ -117,14 +129,17 @@
 | `Config.Blip.sprite_max` | `2000` | sprite id สูงสุดที่ยอมรับ |
 | `Config.Blip.color_max` | `255` | colour id สูงสุดที่ยอมรับ |
 | `Config.Blip.scale_min` / `scale_max` | `0.1` / `5.0` | ช่วงขนาดไอคอนที่ตั้งได้ ค่านอกช่วงจะถูกปัดเข้าขอบ |
+| `Config.Marker.size` | `vec3(1.5, 1.5, 0.5)` | ขนาด marker (X, Y, Z) ของจุดใหม่ |
+| `Config.Marker.color` | `{ 255, 255, 255, 90 }` | สี RGBA ของ marker ของจุดใหม่ (0–255) |
+| `Config.Marker.size_min` / `size_max` | `0.05` / `100.0` | ช่วงขนาด marker ที่ตั้งได้ ค่านอกช่วงจะถูกปัดเข้าขอบ |
 | `Config.Draw.distance` | `80.0` | เห็นวงของจุดเมื่ออยู่ห่างไม่เกินระยะนี้ + รัศมีของจุด |
-| `Config.Draw.height` | `0.6` | ความสูงของวงทรงกระบอกบนพื้น (เมตร) |
 | `Config.Draw.heading` | `1.2` | ความยาวเส้นชี้ทิศ (เมตร) |
 | `Config.Draw.dot` | `0.08` | ขนาดจุดตรงตำแหน่งจริง |
 | `Config.Draw.label` | `true` | แสดงป้าย `#ลำดับ รัศมี` เหนือจุด (เกมวาด origin ได้ 32 ป้ายต่อเฟรม ถ้ามีจุดใกล้กันเกินนั้นบางป้ายจะไม่ขึ้น) |
 | `Config.Draw.sphere` | `false` | วาดทรงกลมรัศมีเดียวกันรอบตำแหน่งจริงด้วย ช่วยดูระยะของ `lib.zones.sphere` / `lib.points` ที่วัดแบบ 3 มิติ |
-| `Config.Draw.fill` | `{ 255, 255, 255, 45 }` | สี RGBA ของวงปกติ (0–255) |
-| `Config.Draw.selected` | `{ 255, 255, 255, 120 }` | สีของวงที่เลือกอยู่ในรายการ |
+| `Config.Draw.segments` | `36` | จำนวนเส้นที่ใช้วาดวงแหวนรัศมี มากขึ้นวงเนียนขึ้นแต่วาดหนักขึ้น (ต่อจุดที่อยู่ใกล้ ต่อเฟรม) |
+| `Config.Draw.ring` | `{ 255, 255, 255, 110 }` | สี RGBA ของวงแหวนรัศมีปกติ (0–255) |
+| `Config.Draw.selected` | `{ 255, 255, 255, 255 }` | สีของวงแหวนของจุดที่เลือกอยู่ในรายการ |
 | `Config.Draw.line` | `{ 255, 255, 255, 220 }` | สีของเส้นตั้ง เส้นชี้ทิศ และจุดกลาง |
 | `Config.Draw.sphere_color` | `{ 255, 255, 255, 25 }` | สีของทรงกลมเมื่อเปิด `sphere` |
 | `Config.Nui.scale` | `1.0` | ขยาย/ย่อ UI ทั้งหมด (UI ออกแบบที่ 1920×1080) |
@@ -157,22 +172,22 @@ Lua → UI (`{ action, payload }`)
 
 | action | payload |
 |---|---|
-| `hydrate` | `{ scale, locale, keys = { add, menu }, precision, radius = { default, min, max, step }, limit, labelLength, modelLength, blip = { spriteMax, colorMax, scaleMin, scaleMax }, visible, points }` |
+| `hydrate` | `{ scale, locale, keys = { add, menu }, precision, radius = { default, min, max, step }, limit, labelLength, modelLength, blip = { spriteMax, colorMax, scaleMin, scaleMax }, marker = { sizeMin, sizeMax }, visible, points }` |
 | `open` | `{ keys }` |
 | `close` | – |
 | `add` | `{ index, point, keys }` |
 | `full` | – |
 | `visible` | `boolean` |
 
-`point` = `{ x, y, z, h, r, label, model, blip, sprite, color, scale, area }`
+`point` = `{ x, y, z, h, r, label, model, blip, sprite, color, scale, area, size = [x, y, z], tint = [r, g, b, a] }`
 
 UI → Lua (ตอบ `1` / `0` ทุกครั้ง)
 
 - `uiReady`, `close`, `clear`
 - `select { index }` (0 = ไม่เลือก), `visible { value }`
-- `update { index, x, y, z, h, r, label, blip, sprite, color, scale, area }`
+- `update { index, x, y, z, h, r, label, blip, sprite, color, scale, area, size, tint }`
 - `model { index, model }` (`''` = เอา prop ออก)
 - `here { index }` และ `ground { index }` ตอบเป็น `point` ที่แก้แล้ว
 - `teleport { index }`, `remove { index }`
 
-KVP `points` เก็บเป็น JSON array ของแถว `[x, y, z, heading, radius, label, model, blip, sprite, color, scale, area]` แถวจากเวอร์ชันแรกที่มีแค่ 6 ช่องยังโหลดได้ (ไม่มี prop / blip)
+KVP `points` เก็บเป็น JSON array ของแถว `[x, y, z, heading, radius, label, model, blip, sprite, color, scale, area, sizeX, sizeY, sizeZ, r, g, b, a]` แถวจากเวอร์ชันก่อนที่มี 6 หรือ 12 ช่องยังโหลดได้ ช่องที่ขาดใช้ค่าเริ่มต้นจาก config

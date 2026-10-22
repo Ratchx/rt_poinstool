@@ -11,6 +11,13 @@ export interface Point {
   color: number
   scale: number
   area: boolean
+  size: number[]
+  tint: number[]
+}
+
+export interface MarkerRule {
+  sizeMin: number
+  sizeMax: number
 }
 
 export interface BlipRule {
@@ -42,6 +49,7 @@ export interface Bootstrap {
   labelLength?: number
   modelLength?: number
   blip?: Partial<BlipRule>
+  marker?: Partial<MarkerRule>
   visible?: boolean
   points?: unknown
 }
@@ -61,6 +69,7 @@ export interface ExportOptions {
   radius: boolean
   label: boolean
   model: boolean
+  marker: boolean
   blip: boolean
 }
 

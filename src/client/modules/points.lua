@@ -2,6 +2,7 @@ Points = {}
 
 local CFG_RADIUS <const> = Config.Radius
 local CFG_BLIP <const> = Config.Blip
+local CFG_MARKER <const> = Config.Marker
 local USE_VEHICLE <const> = Config.Capture.vehicle
 local SCALE <const> = 10 ^ Config.Precision
 local LIMIT <const> = Config.Limit
@@ -34,6 +35,22 @@ local function blipScaleOf(value)
     return math.min(math.max(round(value), CFG_BLIP.scale_min), CFG_BLIP.scale_max)
 end
 
+local function sizeOf(value)
+    local min, max = CFG_MARKER.size_min, CFG_MARKER.size_max
+
+    return vec3(
+        math.min(math.max(round(value.x), min), max),
+        math.min(math.max(round(value.y), min), max),
+        math.min(math.max(round(value.z), min), max)
+    )
+end
+
+local function defaultTint()
+    local color = CFG_MARKER.color
+
+    return { color[1], color[2], color[3], color[4] }
+end
+
 local function capture()
     local entity = USE_VEHICLE and cache.vehicle or cache.ped
     local coords = GetEntityCoords(entity, false)
@@ -49,9 +66,12 @@ local function save()
     for i = 1, #List do
         local point = List[i]
         local coords = point.coords
+        local size = point.size
+        local tint = point.tint
         rows[i] = {
             coords.x, coords.y, coords.z, point.heading, point.radius, point.label,
             point.model, point.blip, point.sprite, point.color, point.scale, point.area,
+            size.x, size.y, size.z, tint[1], tint[2], tint[3], tint[4],
         }
     end
 
@@ -90,6 +110,8 @@ function Points.load()
             color = row[10] or CFG_BLIP.color,
             scale = row[11] or CFG_BLIP.scale,
             area = row[12] == true,
+            size = row[13] and vec3(row[13], row[14], row[15]) or sizeOf(CFG_MARKER.size),
+            tint = row[16] and { row[16], row[17], row[18], row[19] } or defaultTint(),
         }
     end
 end
@@ -126,6 +148,8 @@ function Points.add()
         color = CFG_BLIP.color,
         scale = blipScaleOf(CFG_BLIP.scale),
         area = false,
+        size = sizeOf(CFG_MARKER.size),
+        tint = defaultTint(),
     }
     schedule()
 
@@ -133,7 +157,7 @@ function Points.add()
 end
 
 ---@param index integer
----@param fields { x: number, y: number, z: number, heading: number, radius: number, label: string, blip: boolean, sprite: integer, color: integer, scale: number, area: boolean }
+---@param fields { x: number, y: number, z: number, heading: number, radius: number, label: string, blip: boolean, sprite: integer, color: integer, scale: number, area: boolean, size: vector3, tint: integer[] }
 function Points.update(index, fields)
     local point = List[index]
     point.coords = vec3(round(fields.x), round(fields.y), round(fields.z))
@@ -145,6 +169,8 @@ function Points.update(index, fields)
     point.color = fields.color
     point.scale = blipScaleOf(fields.scale)
     point.area = fields.area
+    point.size = sizeOf(fields.size)
+    point.tint = fields.tint
     schedule()
 end
 
@@ -193,6 +219,7 @@ end
 function Points.wire(index)
     local point = List[index]
     local coords = point.coords
+    local size = point.size
 
     return {
         x = coords.x,
@@ -207,6 +234,8 @@ function Points.wire(index)
         color = point.color,
         scale = point.scale,
         area = point.area,
+        size = { size.x, size.y, size.z },
+        tint = point.tint,
     }
 end
 

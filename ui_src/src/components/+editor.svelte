@@ -5,6 +5,7 @@
   import { points } from '../stores/points.svelte'
   import Check from './+check.svelte'
   import Confirm from './+confirm.svelte'
+  import MarkerFields from './+markerfields.svelte'
   import ModelField from './+modelfield.svelte'
   import NumberField from './+numberfield.svelte'
   import Plan from './+plan.svelte'
@@ -12,6 +13,7 @@
 
   type NumberKey = 'x' | 'y' | 'z' | 'h' | 'r' | 'sprite' | 'color' | 'scale'
   type FlagKey = 'blip' | 'area'
+  type ListKey = 'size' | 'tint'
 
   const AXIS_STEP = 0.1
   const Z_WHEEL_STEP = 0.5
@@ -34,6 +36,13 @@
   }
 
   function setFlag(key: FlagKey, value: boolean) {
+    if (!point) return
+
+    point[key] = value
+    queueUpdate(point)
+  }
+
+  function setList(key: ListKey, value: number[]) {
     if (!point) return
 
     point[key] = value
@@ -114,6 +123,8 @@
     </div>
 
     {#key index}
+      <MarkerFields {point} onsize={(size) => setList('size', size)} ontint={(tint) => setList('tint', tint)} />
+
       <ModelField
         label={config.t('prop')}
         value={point.model}
@@ -124,7 +135,7 @@
     {/key}
 
     <div class="map">
-      <div class="switches">
+      <div class="section-head">
         <span class="caption">{config.t('map')}</span>
         <Check label={config.t('blip')} checked={point.blip} onchange={(value) => setFlag('blip', value)} />
         <Check label={config.t('area')} checked={point.area} onchange={(value) => setFlag('area', value)} />
@@ -286,20 +297,6 @@
     display: flex;
     flex-direction: column;
     gap: calc(8 * var(--px));
-  }
-
-  .switches {
-    display: flex;
-    align-items: center;
-    gap: calc(16 * var(--px));
-    height: calc(28 * var(--px));
-  }
-
-  .caption {
-    margin-right: auto;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    color: var(--ash);
   }
 
   .blip {

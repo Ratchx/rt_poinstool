@@ -10,6 +10,7 @@ local LIMIT <const> = Config.Limit
 local LABEL_LENGTH <const> = Config.LabelLength
 local MODEL_LENGTH <const> = Config.Prop.length
 local CFG_BLIP <const> = Config.Blip
+local CFG_MARKER <const> = Config.Marker
 
 local uiReady = false
 local opened = false
@@ -50,6 +51,10 @@ function Nui.ready()
             colorMax = CFG_BLIP.color_max,
             scaleMin = CFG_BLIP.scale_min,
             scaleMax = CFG_BLIP.scale_max,
+        },
+        marker = {
+            sizeMin = CFG_MARKER.size_min,
+            sizeMax = CFG_MARKER.size_max,
         },
         visible = Marks.isVisible(),
         points = Points.wireAll(),

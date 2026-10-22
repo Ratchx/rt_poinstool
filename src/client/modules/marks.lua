@@ -2,13 +2,13 @@ Marks = {}
 
 local CFG_LOCALE <const> = Config.Locale
 local DRAW_DISTANCE <const> = Config.Draw.distance
-local FILL_HEIGHT <const> = Config.Draw.height
 local HEADING_LENGTH <const> = Config.Draw.heading
 local DOT_SIZE <const> = Config.Draw.dot
 local SHOW_LABEL <const> = Config.Draw.label
 local SHOW_SPHERE <const> = Config.Draw.sphere
-local FILL <const> = Config.Draw.fill
+local RING <const> = Config.Draw.ring
 local SELECTED <const> = Config.Draw.selected
+local RING_SEGMENTS <const> = Config.Draw.segments
 local LINE <const> = Config.Draw.line
 local SPHERE <const> = Config.Draw.sphere_color
 local PROP_TIMEOUT <const> = Config.Prop.timeout
@@ -18,12 +18,22 @@ local MARKER_SPHERE <const> = 28
 local GROUND_PROBE <const> = 0.5
 local GROUND_FALLBACK <const> = 1.0
 local LABEL_LIFT <const> = 0.35
+local RING_LIFT <const> = 0.03
 local HasModelLoaded <const> = HasModelLoaded
 local GetGameTimer <const> = GetGameTimer
+local DrawLine <const> = DrawLine
 
 local Shapes = {}
+local RingCos = {}
+local RingSin = {}
 local selected = 0
 local visible = Config.Visible
+
+for i = 0, RING_SEGMENTS do
+    local angle = i / RING_SEGMENTS * math.pi * 2.0
+    RingCos[i] = math.cos(angle)
+    RingSin[i] = math.sin(angle)
+end
 
 local function hashOf(model)
     if model == '' then return 0 end
@@ -111,13 +121,25 @@ local function draw(self)
     local coords = self.coords
     local x, y, z = coords.x, coords.y, coords.z
     local ground = self.ground
+    local reach = self.reach
     local size = self.size
-    local fill = self.index == selected and SELECTED or FILL
+    local tint = self.tint
+    local ring = self.index == selected and SELECTED or RING
+    local red, green, blue, alpha = ring[1], ring[2], ring[3], ring[4]
+    local lift = ground + RING_LIFT
+    local fromX, fromY = x + reach, y
 
-    DrawMarker(MARKER_CYLINDER, x, y, ground, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, size, size, FILL_HEIGHT, fill[1], fill[2], fill[3], fill[4], false, false, 2, false, nil, nil, false)
+    for i = 1, RING_SEGMENTS do
+        local toX, toY = x + RingCos[i] * reach, y + RingSin[i] * reach
+        DrawLine(fromX, fromY, lift, toX, toY, lift, red, green, blue, alpha)
+        fromX, fromY = toX, toY
+    end
+
+    if tint[4] > 0 then
+        DrawMarker(MARKER_CYLINDER, x, y, ground, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, size.x, size.y, size.z, tint[1], tint[2], tint[3], tint[4], false, false, 2, false, nil, nil, false)
+    end
 
     if SHOW_SPHERE then
-        local reach = self.reach
         DrawMarker(MARKER_SPHERE, x, y, z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, reach, reach, reach, SPHERE[1], SPHERE[2], SPHERE[3], SPHERE[4], false, false, 2, false, nil, nil, false)
     end
 
@@ -147,7 +169,8 @@ local function patch(shape, index, point)
     shape.radius = DRAW_DISTANCE + radius
     shape.index = index
     shape.reach = radius
-    shape.size = radius * 2.0
+    shape.size = point.size
+    shape.tint = point.tint
     shape.heading = heading
     shape.dx = -math.sin(angle) * HEADING_LENGTH
     shape.dy = math.cos(angle) * HEADING_LENGTH

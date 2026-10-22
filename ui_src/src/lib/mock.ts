@@ -4,7 +4,7 @@ import type { Point } from './types'
 
 const ORIGIN = { x: 195.17, y: -933.77, z: 30.69 }
 const SPREAD = 24
-const BLIP_DEFAULT = { blip: false, sprite: 1, color: 0, scale: 0.8, area: false }
+const BLIP_DEFAULT = { blip: false, sprite: 1, color: 0, scale: 0.8, area: false, size: [1.5, 1.5, 0.5], tint: [255, 255, 255, 90] }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 

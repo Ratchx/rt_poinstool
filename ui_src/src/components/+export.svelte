@@ -12,6 +12,7 @@
     { key: 'radius', label: 'with_radius' },
     { key: 'label', label: 'with_label' },
     { key: 'model', label: 'with_model' },
+    { key: 'marker', label: 'with_marker' },
     { key: 'blip', label: 'with_blip' },
   ]
 
@@ -110,8 +111,9 @@
   .checks {
     display: grid;
     flex: 1 0 100%;
-    grid-template-columns: repeat(4, auto);
-    justify-content: space-between;
+    grid-template-columns: repeat(3, auto);
+    justify-content: start;
+    gap: calc(10 * var(--px)) calc(24 * var(--px));
     padding: calc(10 * var(--px)) calc(2 * var(--px)) 0;
     border-top: calc(1 * var(--px)) solid var(--smoke);
   }

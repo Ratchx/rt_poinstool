@@ -3,7 +3,7 @@ import type { ExportOptions, Tab } from '../lib/types'
 const OPTIONS_KEY = 'poinstool:export'
 
 function loadOptions(): ExportOptions {
-  const fallback: ExportOptions = { vec4: false, radius: true, label: false, model: true, blip: false }
+  const fallback: ExportOptions = { vec4: false, radius: true, label: false, model: true, marker: false, blip: false }
 
   try {
     const raw = JSON.parse(localStorage.getItem(OPTIONS_KEY) ?? 'null')
@@ -14,6 +14,7 @@ function loadOptions(): ExportOptions {
       radius: raw.radius !== false,
       label: raw.label === true,
       model: raw.model !== false,
+      marker: raw.marker === true,
       blip: raw.blip === true,
     }
   } catch {

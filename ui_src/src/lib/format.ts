@@ -41,6 +41,12 @@ export function blipOf(point: Point, digits: number): string {
   return `{ ${fields.join(', ')} }`
 }
 
+export function markerOf(point: Point, digits: number): string {
+  const [x, y, z] = point.size
+
+  return `{ size = vec3(${fixed(x, digits)}, ${fixed(y, digits)}, ${fixed(z, digits)}), color = { ${point.tint.join(', ')} } }`
+}
+
 export function lineOf(point: Point, options: ExportOptions, digits: number): string {
   const vector = options.vec4 ? vec4Of(point, digits) : vec3Of(point, digits)
   const head: string[] = []
@@ -48,6 +54,7 @@ export function lineOf(point: Point, options: ExportOptions, digits: number): st
 
   if (options.label && point.label !== '') head.push(`label = '${escapeLua(point.label)}'`)
   if (options.radius) tail.push(`radius = ${fixed(point.r, digits)}`)
+  if (options.marker) tail.push(`marker = ${markerOf(point, digits)}`)
   if (options.model && point.model !== '') tail.push(`model = \`${point.model}\``)
   if (options.blip && (point.blip || point.area)) tail.push(`blip = ${blipOf(point, digits)}`)
 

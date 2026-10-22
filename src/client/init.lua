@@ -5,6 +5,7 @@ local CFG_BLIP <const> = Config.Blip
 local LABEL_LENGTH <const> = Config.LabelLength
 local MODEL_LENGTH <const> = Config.Prop.length
 local ADD_DELAY <const> = Config.AddDelay
+local CHANNEL_MAX <const> = 255
 
 local nextAddAt = 0
 
@@ -32,6 +33,24 @@ local function booleanOf(value)
     if type(value) ~= 'boolean' then return nil end
 
     return value
+end
+
+local function sizeOf(value)
+    if type(value) ~= 'table' then return nil end
+
+    local x, y, z = numberOf(value[1]), numberOf(value[2]), numberOf(value[3])
+    if not (x and y and z) then return nil end
+
+    return vec3(x, y, z)
+end
+
+local function tintOf(value)
+    if type(value) ~= 'table' then return nil end
+
+    local r, g, b, a = integerOf(value[1], CHANNEL_MAX), integerOf(value[2], CHANNEL_MAX), integerOf(value[3], CHANNEL_MAX), integerOf(value[4], CHANNEL_MAX)
+    if not (r and g and b and a) then return nil end
+
+    return { r, g, b, a }
 end
 
 local function labelOf(value)
@@ -132,10 +151,13 @@ RegisterNuiCallback('update', function(data, cb)
         color = integerOf(data.color, CFG_BLIP.color_max),
         scale = numberOf(data.scale),
         area = booleanOf(data.area),
+        size = sizeOf(data.size),
+        tint = tintOf(data.tint),
     }
 
     if not (fields.x and fields.y and fields.z and fields.heading and fields.radius and fields.label)
         or not (fields.sprite and fields.color and fields.scale)
+        or not (fields.size and fields.tint)
         or fields.blip == nil
         or fields.area == nil
     then

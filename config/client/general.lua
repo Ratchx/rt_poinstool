@@ -50,15 +50,22 @@ Config.Blip = {
     scale_max = 5.0,
 }
 
+Config.Marker = {
+    size = vec3(1.5, 1.5, 0.5),
+    color = { 255, 255, 255, 90 },
+    size_min = 0.05,
+    size_max = 100.0,
+}
+
 Config.Draw = {
     distance = 80.0,
-    height = 0.6,
     heading = 1.2,
     dot = 0.08,
+    segments = 36,
     label = true,
     sphere = false,
-    fill = { 255, 255, 255, 45 },
-    selected = { 255, 255, 255, 120 },
+    ring = { 255, 255, 255, 110 },
+    selected = { 255, 255, 255, 255 },
     line = { 255, 255, 255, 220 },
     sphere_color = { 255, 255, 255, 25 },
 }

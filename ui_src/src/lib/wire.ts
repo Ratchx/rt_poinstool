@@ -1,4 +1,4 @@
-import type { BlipRule, Keys, Point, RadiusRule } from './types'
+import type { BlipRule, Keys, MarkerRule, Point, RadiusRule } from './types'
 
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
@@ -7,6 +7,15 @@ export const numberOf = (value: unknown, fallback = 0): number => (finite(value)
 export const textOf = (value: unknown, fallback = ''): string => (typeof value === 'string' ? value : fallback)
 
 const flagOf = (value: unknown): boolean => value === true
+
+const DEFAULT_SIZE = [1.5, 1.5, 0.5]
+const DEFAULT_TINT = [255, 255, 255, 90]
+
+function numbersOf(value: unknown, fallback: number[]): number[] {
+  if (!Array.isArray(value) || value.length !== fallback.length || !value.every(finite)) return [...fallback]
+
+  return [...value]
+}
 
 export function pointOf(value: unknown): Point | null {
   if (!value || typeof value !== 'object') return null
@@ -27,6 +36,17 @@ export function pointOf(value: unknown): Point | null {
     color: numberOf(raw.color),
     scale: numberOf(raw.scale, 0.8),
     area: flagOf(raw.area),
+    size: numbersOf(raw.size, DEFAULT_SIZE),
+    tint: numbersOf(raw.tint, DEFAULT_TINT),
+  }
+}
+
+export function markerRuleOf(value: Partial<MarkerRule> | undefined, current: MarkerRule): MarkerRule {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return current
+
+  return {
+    sizeMin: numberOf(value.sizeMin, current.sizeMin),
+    sizeMax: numberOf(value.sizeMax, current.sizeMax),
   }
 }
 

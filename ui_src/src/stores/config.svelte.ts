@@ -1,6 +1,6 @@
 import { fmt } from '../lib/format'
-import type { BlipRule, Bootstrap, Keys, RadiusRule } from '../lib/types'
-import { blipRuleOf, keysOf, radiusOf } from '../lib/wire'
+import type { BlipRule, Bootstrap, Keys, MarkerRule, RadiusRule } from '../lib/types'
+import { blipRuleOf, keysOf, markerRuleOf, radiusOf } from '../lib/wire'
 
 const LOCALE: Record<string, string> = {
   title: 'Points Tool',
@@ -30,6 +30,12 @@ const LOCALE: Record<string, string> = {
   copy: 'คัดลอก',
   ground: 'ติดพื้น',
 
+  marker: 'Marker',
+  marker_link: 'X = Y',
+  marker_fit: 'เท่ารัศมี',
+  tint: 'สี',
+  alpha: 'A',
+
   prop: 'Prop',
   prop_hint: 'ชื่อโมเดล เช่น prop_atm_01',
   map: 'แผนที่',
@@ -43,6 +49,7 @@ const LOCALE: Record<string, string> = {
   with_radius: 'ใส่รัศมี',
   with_label: 'ใส่ชื่อ',
   with_model: 'ใส่โมเดล',
+  with_marker: 'ใส่ marker',
   with_blip: 'ใส่ blip',
   copy_all: 'คัดลอกทั้งหมด',
   clear: 'ล้างทั้งหมด',
@@ -72,6 +79,7 @@ class ConfigStore {
   limit = $state(300)
   labelLength = $state(32)
   modelLength = $state(64)
+  marker = $state<MarkerRule>({ sizeMin: 0.05, sizeMax: 100 })
   blip = $state<BlipRule>({ spriteMax: 2000, colorMax: 255, scaleMin: 0.1, scaleMax: 5 })
 
   t(key: string, ...args: (string | number)[]): string {
@@ -92,6 +100,7 @@ class ConfigStore {
 
     this.radius = radiusOf(payload.radius, this.radius)
     this.blip = blipRuleOf(payload.blip, this.blip)
+    this.marker = markerRuleOf(payload.marker, this.marker)
     this.setKeys(payload.keys)
   }
 }

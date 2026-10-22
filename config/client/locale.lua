@@ -33,6 +33,12 @@ Config.Locale = {
         copy = 'คัดลอก',
         ground = 'ติดพื้น',
 
+        marker = 'Marker',
+        marker_link = 'X = Y',
+        marker_fit = 'เท่ารัศมี',
+        tint = 'สี',
+        alpha = 'A',
+
         prop = 'Prop',
         prop_hint = 'ชื่อโมเดล เช่น prop_atm_01',
         map = 'แผนที่',
@@ -46,6 +52,7 @@ Config.Locale = {
         with_radius = 'ใส่รัศมี',
         with_label = 'ใส่ชื่อ',
         with_model = 'ใส่โมเดล',
+        with_marker = 'ใส่ marker',
         with_blip = 'ใส่ blip',
         copy_all = 'คัดลอกทั้งหมด',
         clear = 'ล้างทั้งหมด',

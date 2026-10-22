@@ -43,6 +43,8 @@ export function flushUpdates() {
       color: point.color,
       scale: point.scale,
       area: point.area,
+      size: [...point.size],
+      tint: [...point.tint],
     })
   }
 

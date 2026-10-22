@@ -139,6 +139,27 @@ button:disabled {
   background: rgba(255, 255, 255, 0.86);
 }
 
+.btn.small {
+  height: calc(28 * var(--px));
+  padding: 0 calc(10 * var(--px));
+  border-radius: var(--radius-field);
+  font-size: var(--text-xs);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: calc(16 * var(--px));
+  height: calc(28 * var(--px));
+}
+
+.section-head .caption {
+  margin-right: auto;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ash);
+}
+
 .btn.quiet {
   border-color: transparent;
 }
