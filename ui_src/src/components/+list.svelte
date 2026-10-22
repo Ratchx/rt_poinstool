@@ -1,9 +1,12 @@
 <script lang="ts">
   import { untrack } from 'svelte'
-  import { select } from '../lib/api'
+  import { slide } from 'svelte/transition'
+  import { removeChecked, select } from '../lib/api'
   import { fixed } from '../lib/format'
   import { config } from '../stores/config.svelte'
   import { points } from '../stores/points.svelte'
+  import Check from './+check.svelte'
+  import Confirm from './+confirm.svelte'
   import Keycap from './+keycap.svelte'
 
   let scroller = $state<HTMLOListElement>()
@@ -28,6 +31,18 @@
     }
   }
 
+  function tick(index: number, event: MouseEvent) {
+    if (event.shiftKey) points.checkRange(index)
+    else points.toggleCheck(index)
+  }
+
+  function press(index: number, event: MouseEvent) {
+    if (event.shiftKey) return points.checkRange(index)
+    if (event.ctrlKey || event.metaKey) return points.toggleCheck(index)
+
+    select(index)
+  }
+
   $effect(() => {
     const index = points.selected
     if (!scroller) return
@@ -44,9 +59,14 @@
 {:else}
   <ol class="list" {@attach settle}>
     {#each points.list as point, i (point)}
-      <li>
-        <button class="row" class:selected={points.selected === i + 1} onclick={() => select(i + 1)}>
-          <span class="index num">{i + 1}</span>
+      {@const index = i + 1}
+      {@const checked = points.checked.has(index)}
+      <li class:checked>
+        <span class="tick">
+          <Check label="" {checked} ariaLabel={config.t('check', index)} onchange={(_, event) => tick(index, event)} />
+        </span>
+        <button class="row" class:selected={points.selected === index} onclick={(event) => press(index, event)}>
+          <span class="index num">{index}</span>
           <span class="main">
             <span class="title">
               <span class="name" class:unnamed={point.label === ''}>{point.label || config.t('unnamed')}</span>
@@ -63,6 +83,20 @@
       </li>
     {/each}
   </ol>
+
+  {#if points.checkedCount > 0}
+    <div class="bulk" transition:slide={{ duration: 180 }}>
+      <strong class="num">{config.t('checked', points.checkedCount)}</strong>
+      <button class="btn small quiet" onclick={() => points.checkAll()}>{config.t('check_all')}</button>
+      <button class="btn small quiet" onclick={() => points.uncheckAll()}>{config.t('uncheck')}</button>
+      <Confirm
+        small
+        label={config.t('remove_many', points.checkedCount)}
+        confirmLabel={config.t('remove_many_confirm', points.checkedCount)}
+        onconfirm={removeChecked}
+      />
+    </div>
+  {/if}
 {/if}
 
 <style>
@@ -75,12 +109,44 @@
     list-style: none;
   }
 
+  li {
+    display: flex;
+    align-items: center;
+  }
+
+  .tick {
+    display: flex;
+    flex: none;
+    justify-content: center;
+    width: calc(26 * var(--px));
+  }
+
+  li.checked .row:not(.selected) {
+    background: var(--haze);
+  }
+
+  .bulk {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: calc(6 * var(--px));
+    padding: calc(10 * var(--px)) calc(14 * var(--px)) calc(10 * var(--px)) calc(20 * var(--px));
+    border-top: calc(1 * var(--px)) solid var(--rule);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .bulk strong {
+    margin-right: auto;
+    font-size: var(--text-sm);
+  }
+
   .row {
     display: grid;
+    flex: 1;
     grid-template-columns: calc(30 * var(--px)) minmax(0, 1fr) auto;
     align-items: center;
     gap: calc(12 * var(--px));
-    width: 100%;
+    min-width: 0;
     padding: calc(10 * var(--px)) calc(12 * var(--px));
     border: 0;
     border-radius: var(--radius-block);

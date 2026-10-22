@@ -303,27 +303,47 @@ function Marks.refresh(index)
     remodel(shape, point)
 end
 
----@param index integer
-function Marks.remove(index)
-    if selected == index then
+local function shiftSelected(removed)
+    if selected == 0 then return end
+
+    if removed[selected] then
         selected = 0
-    elseif selected > index then
-        selected -= 1
+        return
     end
+
+    local shift = 0
+
+    for i = 1, selected - 1 do
+        if removed[i] then shift += 1 end
+    end
+
+    selected -= shift
+end
+
+---@param removed table<integer, true>
+function Marks.remove(removed)
+    shiftSelected(removed)
 
     if not visible then return end
 
-    drop(Shapes[index])
-
     local count = #Shapes
+    local kept = 0
 
-    for i = index, count - 1 do
-        local shape = Shapes[i + 1]
-        patch(shape, i, Points.get(i))
-        Shapes[i] = shape
+    for i = 1, count do
+        local shape = Shapes[i]
+
+        if removed[i] then
+            drop(shape)
+        else
+            kept += 1
+            Shapes[kept] = shape
+            if kept ~= i then patch(shape, kept, Points.get(kept)) end
+        end
     end
 
-    Shapes[count] = nil
+    for i = kept + 1, count do
+        Shapes[i] = nil
+    end
 end
 
 function Marks.clear()

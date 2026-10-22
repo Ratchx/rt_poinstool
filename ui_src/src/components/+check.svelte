@@ -1,8 +1,13 @@
 <script lang="ts">
-  let { label, checked, onchange }: { label: string; checked: boolean; onchange: (value: boolean) => void } = $props()
+  let {
+    label,
+    checked,
+    ariaLabel,
+    onchange,
+  }: { label: string; checked: boolean; ariaLabel?: string; onchange: (value: boolean, event: MouseEvent) => void } = $props()
 </script>
 
-<button class="check" class:on={checked} role="checkbox" aria-checked={checked} onclick={() => onchange(!checked)}>
+<button class="check" class:on={checked} role="checkbox" aria-checked={checked} aria-label={ariaLabel} onclick={(event) => onchange(!checked, event)}>
   <span class="box"></span>{label}
 </button>
 
@@ -30,6 +35,10 @@
     height: calc(16 * var(--px));
     border: calc(1.5 * var(--px)) solid var(--ash);
     border-radius: calc(4 * var(--px));
+  }
+
+  .check:hover .box {
+    border-color: var(--graphite);
   }
 
   .check.on .box {

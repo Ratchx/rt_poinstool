@@ -197,15 +197,22 @@ function Points.move(index)
     schedule()
 end
 
----@param index integer
-function Points.remove(index)
+---@param removed table<integer, true>
+function Points.remove(removed)
     local count = #List
+    local kept = 0
 
-    for i = index, count - 1 do
-        List[i] = List[i + 1]
+    for i = 1, count do
+        if not removed[i] then
+            kept += 1
+            List[kept] = List[i]
+        end
     end
 
-    List[count] = nil
+    for i = kept + 1, count do
+        List[i] = nil
+    end
+
     schedule()
 end
 

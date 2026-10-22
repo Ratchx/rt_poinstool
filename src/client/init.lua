@@ -16,6 +16,25 @@ local function indexOf(data)
     return index
 end
 
+local function indexesOf(data)
+    if type(data) ~= 'table' or type(data.indexes) ~= 'table' then return nil end
+
+    local list = data.indexes
+    local count = #list
+    if count == 0 or count > Points.count() then return nil end
+
+    local removed = {}
+
+    for i = 1, count do
+        local index = math.tointeger(list[i])
+        if not index or not Points.get(index) or removed[index] then return nil end
+
+        removed[index] = true
+    end
+
+    return removed
+end
+
 local function numberOf(value)
     if type(value) ~= 'number' or value ~= value or value == math.huge or value == -math.huge then return nil end
 
@@ -212,12 +231,12 @@ RegisterNuiCallback('teleport', function(data, cb)
 end)
 
 RegisterNuiCallback('remove', function(data, cb)
-    local index = indexOf(data)
-    if not index then return cb(0) end
+    local removed = indexesOf(data)
+    if not removed then return cb(0) end
 
     cb(1)
-    Points.remove(index)
-    Marks.remove(index)
+    Points.remove(removed)
+    Marks.remove(removed)
     Blips.rebuild()
 end)
 

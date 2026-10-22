@@ -57,11 +57,13 @@
   }
 </script>
 
-{#if point}
+{#if points.checkedCount > 0}
+  <p class="pick">{config.t('checked_hint')}</p>
+{:else if point}
   <section class="editor">
     <header>
       <h2>{config.t('edit', indexLabel(index))}</h2>
-      <Confirm label={config.t('remove')} confirmLabel={config.t('remove_confirm')} onconfirm={() => remove(index)} />
+      <Confirm label={config.t('remove')} confirmLabel={config.t('remove_confirm')} onconfirm={() => remove([index])} />
     </header>
 
     <div class="top">

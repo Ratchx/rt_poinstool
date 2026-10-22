@@ -74,14 +74,20 @@ export function setVisible(value: boolean) {
   request('visible', { value })
 }
 
-export async function remove(index: number) {
+export async function remove(indexes: number[]) {
+  if (indexes.length === 0) return
+
   flushUpdates()
 
-  const result = await request<number>('remove', { index })
+  const result = await request<number>('remove', { indexes })
   if (result !== 1) return toast.show(config.t('failed'))
 
-  points.removeAt(index)
-  toast.show(config.t('removed', indexLabel(index)))
+  points.removeMany(indexes)
+  toast.show(indexes.length === 1 ? config.t('removed', indexLabel(indexes[0])) : config.t('removed_many', indexes.length))
+}
+
+export function removeChecked() {
+  remove([...points.checked].sort((a, b) => a - b))
 }
 
 export async function clearAll() {

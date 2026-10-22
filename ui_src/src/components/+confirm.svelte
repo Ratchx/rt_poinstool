@@ -8,7 +8,8 @@
     confirmLabel,
     onconfirm,
     disabled = false,
-  }: { label: string; confirmLabel: string; onconfirm: () => void; disabled?: boolean } = $props()
+    small = false,
+  }: { label: string; confirmLabel: string; onconfirm: () => void; disabled?: boolean; small?: boolean } = $props()
 
   let armed = $state(false)
   let timer = 0
@@ -32,6 +33,6 @@
   onDestroy(() => clearTimeout(timer))
 </script>
 
-<button class="btn" class:solid={armed} {disabled} onclick={press} onblur={disarm}>
+<button class="btn" class:solid={armed} class:small {disabled} onclick={press} onblur={disarm}>
   {armed ? confirmLabel : label}
 </button>
