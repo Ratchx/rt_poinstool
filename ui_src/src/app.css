@@ -1,0 +1,167 @@
+@font-face {
+  font-family: 'LINE Seed Sans TH';
+  src: url('./assets/fonts/LINESeedSansTH_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'LINE Seed Sans TH';
+  src: url('./assets/fonts/LINESeedSansTH_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --base-width: 1920;
+  --base-height: 1080;
+  --ui-scale: 1;
+  --px: calc(min(100vw / var(--base-width), 100vh / var(--base-height)) * var(--ui-scale));
+
+  --ink: rgba(0, 0, 0, 0.88);
+  --ink-soft: rgba(0, 0, 0, 0.72);
+  --black: #000000;
+  --paper: #ffffff;
+  --graphite: rgba(255, 255, 255, 0.66);
+  --ash: rgba(255, 255, 255, 0.4);
+  --rule: rgba(255, 255, 255, 0.14);
+  --haze: rgba(255, 255, 255, 0.1);
+  --smoke: rgba(255, 255, 255, 0.06);
+  --ink-graphite: rgba(0, 0, 0, 0.62);
+
+  --font: 'LINE Seed Sans TH', 'Segoe UI', sans-serif;
+
+  --text-xs: calc(12 * var(--px));
+  --text-sm: calc(13 * var(--px));
+  --text-md: calc(15 * var(--px));
+  --text-lg: calc(18 * var(--px));
+  --text-xl: calc(24 * var(--px));
+
+  --radius-panel: calc(18 * var(--px));
+  --radius-block: calc(10 * var(--px));
+  --radius-field: calc(7 * var(--px));
+  --radius-key: calc(5 * var(--px));
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-md);
+  line-height: 1.45;
+  color: var(--paper);
+  background: transparent;
+  user-select: none;
+  cursor: default;
+}
+
+body.standalone {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.35) 100%),
+    linear-gradient(115deg, #8c9aa3 0%, #b9c0bd 38%, #6f7a72 70%, #3e4842 100%);
+}
+
+button,
+input,
+textarea {
+  margin: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: calc(2 * var(--px)) solid var(--paper);
+  outline-offset: calc(2 * var(--px));
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(8 * var(--px));
+  height: calc(38 * var(--px));
+  padding: 0 calc(14 * var(--px));
+  border: calc(1 * var(--px)) solid var(--rule);
+  border-radius: var(--radius-block);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color 120ms var(--ease-out),
+    border-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+}
+
+.btn:hover {
+  border-color: var(--ash);
+  background: var(--smoke);
+}
+
+.btn:active,
+.btn.solid {
+  border-color: var(--paper);
+  background: var(--paper);
+  color: var(--black);
+}
+
+.btn.solid:hover {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.btn.quiet {
+  border-color: transparent;
+}
+
+.btn.quiet:hover {
+  border-color: var(--rule);
+}
+
+::-webkit-scrollbar {
+  width: calc(6 * var(--px));
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: calc(3 * var(--px));
+  background: var(--rule);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0ms !important;
+  }
+}
