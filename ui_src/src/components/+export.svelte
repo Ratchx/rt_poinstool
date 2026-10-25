@@ -1,10 +1,11 @@
 <script lang="ts">
   import { clearAll, copy } from '../lib/api'
-  import { exportOf } from '../lib/format'
+  import { exportOf, exportPolysOf } from '../lib/format'
   import type { ExportOptions } from '../lib/types'
   import { config } from '../stores/config.svelte'
   import { panel } from '../stores/panel.svelte'
   import { points } from '../stores/points.svelte'
+  import { polys } from '../stores/polys.svelte'
   import Check from './+check.svelte'
   import Confirm from './+confirm.svelte'
 
@@ -16,28 +17,46 @@
     { key: 'blip', label: 'with_blip' },
   ]
 
+  const polyMode = $derived(panel.exportMode === 'polys')
+  const filled = $derived(polys.list.filter((poly) => poly.points.length > 0).length)
   const text = $derived(exportOf(points.list, panel.options, config.precision))
+  const polyText = $derived(exportPolysOf(polys.list, config.precision, panel.options.label))
   const lines = $derived(text.split('\n').map((line) => line.trimStart()))
 </script>
 
 <section class="export">
   <div class="options">
-    <div class="group" role="radiogroup" aria-label={config.t('format')}>
-      <span class="caption">{config.t('format')}</span>
-      <div class="segmented">
-        <button role="radio" aria-checked={!panel.options.vec4} class:on={!panel.options.vec4} onclick={() => panel.setOption('vec4', false)}>vec3</button>
-        <button role="radio" aria-checked={panel.options.vec4} class:on={panel.options.vec4} onclick={() => panel.setOption('vec4', true)}>vec4</button>
-      </div>
+    <div class="segmented" role="radiogroup">
+      <button role="radio" aria-checked={!polyMode} class:on={!polyMode} onclick={() => (panel.exportMode = 'points')}>{config.t('export_points')}</button>
+      <button role="radio" aria-checked={polyMode} class:on={polyMode} onclick={() => (panel.exportMode = 'polys')}>{config.t('export_polys')}</button>
     </div>
 
-    <div class="checks">
-      {#each CHECKS as check (check.key)}
-        <Check label={config.t(check.label)} checked={panel.options[check.key]} onchange={(value) => panel.setOption(check.key, value)} />
-      {/each}
-    </div>
+    {#if polyMode}
+      <Check label={config.t('with_label')} checked={panel.options.label} onchange={(value) => panel.setOption('label', value)} />
+    {:else}
+      <div class="group" role="radiogroup" aria-label={config.t('format')}>
+        <span class="caption">{config.t('format')}</span>
+        <div class="segmented">
+          <button role="radio" aria-checked={!panel.options.vec4} class:on={!panel.options.vec4} onclick={() => panel.setOption('vec4', false)}>vec3</button>
+          <button role="radio" aria-checked={panel.options.vec4} class:on={panel.options.vec4} onclick={() => panel.setOption('vec4', true)}>vec4</button>
+        </div>
+      </div>
+
+      <div class="checks">
+        {#each CHECKS as check (check.key)}
+          <Check label={config.t(check.label)} checked={panel.options[check.key]} onchange={(value) => panel.setOption(check.key, value)} />
+        {/each}
+      </div>
+    {/if}
   </div>
 
-  {#if points.count === 0}
+  {#if polyMode}
+    {#if filled === 0}
+      <p class="empty">{config.t('poly_empty')}</p>
+    {:else}
+      <pre class="code block num">{polyText}</pre>
+    {/if}
+  {:else if points.count === 0}
     <p class="empty">{config.t('empty')}</p>
   {:else}
     <div class="code num">
@@ -48,10 +67,17 @@
   {/if}
 
   <footer>
-    <Confirm label={config.t('clear')} confirmLabel={config.t('clear_confirm')} disabled={points.count === 0} onconfirm={clearAll} />
-    <button class="btn solid" disabled={points.count === 0} onclick={() => copy(text, config.t('copied_all', points.count))}>
-      {config.t('copy_all')}
-    </button>
+    {#if polyMode}
+      <span></span>
+      <button class="btn solid" disabled={filled === 0} onclick={() => copy(polyText, config.t('copied_polys', filled))}>
+        {config.t('copy_all')}
+      </button>
+    {:else}
+      <Confirm label={config.t('clear')} confirmLabel={config.t('clear_confirm')} disabled={points.count === 0} onconfirm={clearAll} />
+      <button class="btn solid" disabled={points.count === 0} onclick={() => copy(text, config.t('copied_all', points.count))}>
+        {config.t('copy_all')}
+      </button>
+    {/if}
   </footer>
 </section>
 
@@ -131,6 +157,14 @@
     line-height: 1.55;
     color: var(--graphite);
     user-select: text;
+  }
+
+  .code.block {
+    margin: 0;
+    font-family: var(--font);
+    line-height: 1.6;
+    white-space: pre;
+    overflow: auto;
   }
 
   .line {

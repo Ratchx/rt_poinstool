@@ -1,4 +1,5 @@
 import { points } from '../stores/points.svelte'
+import { polys } from '../stores/polys.svelte'
 import { roundTo } from './format'
 import type { Point } from './types'
 
@@ -53,6 +54,24 @@ export async function mockCall(event: string, data: Record<string, unknown> = {}
   if (event === 'model') return typeof data.model === 'string' && !data.model.includes('bad') ? 1 : 0
 
   if (event === 'teleport') post('close')
+
+  if (event === 'polyCreate') {
+    return { index: polys.count + 1, poly: { label: '', thickness: 4, color: [255, 42, 24, 90], points: [] } }
+  }
+
+  if (event === 'polyFlatten') {
+    const poly = polys.list[Number(data.index) - 1]
+    if (!poly || poly.points.length === 0) return 0
+
+    const z = roundTo(poly.points.reduce((sum, vertex) => sum + vertex.z, 0) / poly.points.length, 2)
+
+    return { ...poly, points: poly.points.map((vertex) => ({ ...vertex, z })) }
+  }
+
+  if (event === 'place') {
+    post('close')
+    post('place', { active: true, target: Number(data.index) || 0 })
+  }
 
   return 1
 }

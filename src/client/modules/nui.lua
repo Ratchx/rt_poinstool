@@ -11,6 +11,7 @@ local LABEL_LENGTH <const> = Config.LabelLength
 local MODEL_LENGTH <const> = Config.Prop.length
 local CFG_BLIP <const> = Config.Blip
 local CFG_MARKER <const> = Config.Marker
+local CFG_POLY <const> = Config.Poly
 
 local uiReady = false
 local opened = false
@@ -31,6 +32,8 @@ local function keysOf()
     return {
         add = keyOf(CFG_COMMAND.add, CFG_KEY.add),
         menu = keyOf(CFG_COMMAND.menu, CFG_KEY.menu),
+        place = keyOf(CFG_COMMAND.place, CFG_KEY.place),
+        undo = keyOf(CFG_COMMAND.undo, CFG_KEY.undo),
     }
 end
 
@@ -56,8 +59,15 @@ function Nui.ready()
             sizeMin = CFG_MARKER.size_min,
             sizeMax = CFG_MARKER.size_max,
         },
+        poly = {
+            thicknessMin = CFG_POLY.thickness_min,
+            thicknessMax = CFG_POLY.thickness_max,
+            limit = CFG_POLY.limit,
+            vertices = CFG_POLY.vertices,
+        },
         visible = Marks.isVisible(),
         points = Points.wireAll(),
+        polys = Polys.wireAll(),
     })
 end
 
@@ -98,4 +108,27 @@ end
 ---@param value boolean
 function Nui.visible(value)
     send('visible', value)
+end
+
+---@param active boolean
+---@param target integer
+function Nui.place(active, target)
+    send('place', { active = active, target = target, keys = keysOf() })
+end
+
+---@param index integer
+---@param added integer
+function Nui.poly(index, added)
+    send('poly', { index = index, poly = Polys.wire(index), added = added })
+end
+
+---@param index integer
+function Nui.removed(index)
+    send('removed', { indexes = { index } })
+end
+
+---@param key string
+---@param ... string | number
+function Nui.toast(key, ...)
+    send('toast', { key = key, args = { ... } })
 end

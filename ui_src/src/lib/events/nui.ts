@@ -1,12 +1,14 @@
 import { config } from '../../stores/config.svelte'
 import { panel } from '../../stores/panel.svelte'
 import { points } from '../../stores/points.svelte'
+import { polys } from '../../stores/polys.svelte'
 import { toast } from '../../stores/toast.svelte'
 import { flushUpdates } from '../api'
+import { flushPolys } from '../polyApi'
 import { indexLabel, vec3Of } from '../format'
-import type { AddPayload, Bootstrap, OpenPayload } from '../types'
+import type { AddPayload, Bootstrap, OpenPayload, PlacePayload, PolyPayload, RemovedPayload, ToastPayload } from '../types'
 import { fetchNui } from '../utils/fetchNui'
-import { numberOf, pointOf, pointsOf } from '../wire'
+import { numberOf, pointOf, pointsOf, polyOf, polysOf } from '../wire'
 
 const handlers: Record<string, (payload: never) => void> = {
   hydrate: (payload: Bootstrap) => {
@@ -14,6 +16,7 @@ const handlers: Record<string, (payload: never) => void> = {
 
     config.apply(data)
     points.load(pointsOf(data.points))
+    polys.load(polysOf(data.polys))
     if (typeof data.visible === 'boolean') points.visible = data.visible
   },
 
@@ -25,6 +28,7 @@ const handlers: Record<string, (payload: never) => void> = {
 
   close: () => {
     flushUpdates()
+    flushPolys()
     panel.hide()
   },
 
@@ -44,6 +48,35 @@ const handlers: Record<string, (payload: never) => void> = {
 
   visible: (payload: boolean) => {
     points.visible = payload === true
+  },
+
+  place: (payload: PlacePayload) => {
+    config.setKeys(payload?.keys)
+    polys.placing = payload?.active === true
+    polys.target = numberOf(payload?.target)
+  },
+
+  poly: (payload: PolyPayload) => {
+    const poly = polyOf(payload?.poly)
+    const index = numberOf(payload?.index)
+    if (!poly || index < 1) return
+
+    polys.upsert(index, poly)
+
+    const added = numberOf(payload.added)
+    if (added > 0) toast.show(config.t('vertex_added', added, polys.nameOf(index)))
+  },
+
+  removed: (payload: RemovedPayload) => {
+    const indexes = Array.isArray(payload?.indexes) ? payload.indexes.filter((index): index is number => typeof index === 'number') : []
+    if (indexes.length > 0) points.removeMany(indexes)
+  },
+
+  toast: (payload: ToastPayload) => {
+    if (typeof payload?.key !== 'string') return
+
+    const args = Array.isArray(payload.args) ? payload.args.filter((arg): arg is string | number => typeof arg === 'string' || typeof arg === 'number') : []
+    toast.show(config.t(payload.key, ...args))
   },
 }
 

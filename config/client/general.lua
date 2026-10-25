@@ -3,11 +3,15 @@ Config = {}
 Config.Command = {
     add = 'poinstool_add',
     menu = 'poinstool',
+    place = 'poinstool_place',
+    undo = 'poinstool_undo',
 }
 
 Config.Key = {
     add = 'J',
     menu = 'F7',
+    place = 'K',
+    undo = 'BACK',
 }
 
 Config.Radius = {
@@ -55,6 +59,21 @@ Config.Marker = {
     color = { 255, 255, 255, 90 },
     size_min = 0.05,
     size_max = 100.0,
+}
+
+Config.Poly = {
+    thickness = 4.0,
+    thickness_min = 0.5,
+    thickness_max = 200.0,
+    color = { 255, 42, 24, 90 },
+    limit = 50,
+    vertices = 100,
+}
+
+Config.Place = {
+    distance = 1000.0,
+    point_lift = 1.0,
+    flags = (1 << 0) | (1 << 4),
 }
 
 Config.Draw = {

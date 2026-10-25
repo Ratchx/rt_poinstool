@@ -1,0 +1,225 @@
+Place = {}
+
+local PLACE_DISTANCE <const> = Config.Place.distance
+local POINT_LIFT <const> = vec3(0.0, 0.0, Config.Place.point_lift)
+local PROBE_FLAGS <const> = Config.Place.flags
+local PREVIEW <const> = Config.Draw.line
+local VERTEX_LIMIT <const> = Config.Poly.vertices
+local PROBE_OPTIONS <const> = 7
+local PROBE_PENDING <const> = 1
+local PROBE_HIT <const> = 1
+local ROTATION_ORDER <const> = 2
+local CONTROL_ATTACK <const> = 24
+local CONTROL_AIM <const> = 25
+local CONTROL_PAUSE <const> = 200
+local CONTROL_LOOK_X <const> = 1
+local CONTROL_LOOK_Y <const> = 2
+local CONTROL_CURSOR_X <const> = 239
+local CONTROL_CURSOR_Y <const> = 240
+local BLOCKED_CONTROLS <const> = { 24, 25, 37, 140, 141, 142, 257, 263, 264, 200 }
+local PREVIEW_HEIGHT <const> = vec3(0.0, 0.0, 1.5)
+local PREVIEW_DOT <const> = 0.12
+local MARKER_SPHERE <const> = 28
+local DisableControlAction <const> = DisableControlAction
+local IsDisabledControlPressed <const> = IsDisabledControlPressed
+local IsDisabledControlJustPressed <const> = IsDisabledControlJustPressed
+local SetMouseCursorThisFrame <const> = SetMouseCursorThisFrame
+local GetControlNormal <const> = GetControlNormal
+local GetFinalRenderedCamCoord <const> = GetFinalRenderedCamCoord
+local GetFinalRenderedCamRot <const> = GetFinalRenderedCamRot
+local GetFinalRenderedCamFov <const> = GetFinalRenderedCamFov
+local GetAspectRatio <const> = GetAspectRatio
+local StartShapeTestLosProbe <const> = StartShapeTestLosProbe
+local GetShapeTestResult <const> = GetShapeTestResult
+local DrawLine <const> = DrawLine
+local DrawMarker <const> = DrawMarker
+
+local HistoryPoly = {}
+local HistoryIndex = {}
+local historyCount = 0
+local active = false
+local target = 0
+local probe = nil
+local hover = nil
+
+local function rayFromCursor()
+    local origin = GetFinalRenderedCamCoord()
+    local rotation = GetFinalRenderedCamRot(ROTATION_ORDER)
+    local spread = math.tan(math.rad(GetFinalRenderedCamFov()) * 0.5)
+    local screenX = (GetControlNormal(0, CONTROL_CURSOR_X) * 2.0 - 1.0) * spread * GetAspectRatio(false)
+    local screenY = (1.0 - GetControlNormal(0, CONTROL_CURSOR_Y) * 2.0) * spread
+    local pitch, yaw = math.rad(rotation.x), math.rad(rotation.z)
+    local cosPitch = math.cos(pitch)
+    local forward = vec3(-math.sin(yaw) * cosPitch, math.cos(yaw) * cosPitch, math.sin(pitch))
+    local right = vec3(math.cos(yaw), math.sin(yaw), 0.0)
+    local up = vec3(right.y * forward.z, -right.x * forward.z, right.x * forward.y - right.y * forward.x)
+    local direction = forward + right * screenX + up * screenY
+
+    return origin, direction / #direction, rotation.z
+end
+
+local function updateHover()
+    if probe then
+        local status, hit, coords = GetShapeTestResult(probe)
+        if status == PROBE_PENDING then return end
+
+        probe = nil
+        hover = hit == PROBE_HIT and coords or nil
+    end
+
+    local origin, direction = rayFromCursor()
+    local finish = origin + direction * PLACE_DISTANCE
+
+    probe = StartShapeTestLosProbe(origin.x, origin.y, origin.z, finish.x, finish.y, finish.z, PROBE_FLAGS, cache.ped, PROBE_OPTIONS)
+end
+
+local function drawPreview()
+    if not hover then return end
+
+    local red, green, blue, alpha = PREVIEW[1], PREVIEW[2], PREVIEW[3], PREVIEW[4]
+    local top = hover + PREVIEW_HEIGHT
+
+    DrawLine(hover.x, hover.y, hover.z, top.x, top.y, top.z, red, green, blue, alpha)
+    DrawMarker(MARKER_SPHERE, hover.x, hover.y, hover.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, PREVIEW_DOT, PREVIEW_DOT, PREVIEW_DOT, red, green, blue, alpha, false, false, 2, false, nil, nil, false)
+
+    if target == 0 then return end
+
+    local vertices = Polys.get(target).points
+    local count = #vertices
+    if count == 0 then return end
+
+    local last = vertices[count]
+    DrawLine(last.x, last.y, last.z, hover.x, hover.y, hover.z, red, green, blue, alpha)
+
+    if count < 2 then return end
+
+    local first = vertices[1]
+    DrawLine(hover.x, hover.y, hover.z, first.x, first.y, first.z, red, green, blue, alpha)
+end
+
+local function remember(poly, index)
+    historyCount += 1
+    HistoryPoly[historyCount] = poly
+    HistoryIndex[historyCount] = index
+end
+
+local function forget()
+    HistoryPoly = {}
+    HistoryIndex = {}
+    historyCount = 0
+end
+
+local function placePoint(heading)
+    local index = Points.addAt(hover + POINT_LIFT, heading)
+    if not index then return Nui.full() end
+
+    Marks.add(index)
+    Nui.added(index)
+    remember(0, index)
+end
+
+local function placeVertex()
+    local vertex = Polys.addVertex(target, hover)
+    if not vertex then return Nui.toast('vertex_full', VERTEX_LIMIT) end
+
+    Walls.refresh(target)
+    Nui.poly(target, vertex)
+    remember(target, vertex)
+end
+
+local function place()
+    if target > 0 then return placeVertex() end
+
+    local _, _, heading = rayFromCursor()
+    placePoint(heading)
+end
+
+local function run()
+    CreateThread(function()
+        while active do
+            for i = 1, #BLOCKED_CONTROLS do
+                DisableControlAction(0, BLOCKED_CONTROLS[i], true)
+            end
+
+            if IsDisabledControlJustPressed(0, CONTROL_PAUSE) then
+                Place.stop()
+            elseif not IsDisabledControlPressed(0, CONTROL_AIM) then
+                DisableControlAction(0, CONTROL_LOOK_X, true)
+                DisableControlAction(0, CONTROL_LOOK_Y, true)
+                SetMouseCursorThisFrame()
+                updateHover()
+                drawPreview()
+
+                if hover and IsDisabledControlJustPressed(0, CONTROL_ATTACK) then place() end
+            end
+
+            Wait(0)
+        end
+    end)
+end
+
+---@return boolean
+function Place.isActive()
+    return active
+end
+
+---@param poly integer?
+function Place.start(poly)
+    if active then return end
+
+    if poly then target = poly end
+
+    active = true
+    forget()
+    Nui.place(true, target)
+    run()
+end
+
+function Place.stop()
+    if not active then return end
+
+    active = false
+    probe = nil
+    hover = nil
+    forget()
+    Nui.place(false, target)
+end
+
+---@param poly integer
+function Place.setTarget(poly)
+    target = poly
+    if active then Nui.place(true, target) end
+end
+
+---@param poly integer
+function Place.onPolyRemoved(poly)
+    if target == poly then
+        target = 0
+    elseif target > poly then
+        target -= 1
+    end
+end
+
+function Place.undo()
+    if not active or historyCount == 0 then return end
+
+    local poly, index = HistoryPoly[historyCount], HistoryIndex[historyCount]
+
+    HistoryPoly[historyCount] = nil
+    HistoryIndex[historyCount] = nil
+    historyCount -= 1
+
+    if poly == 0 then
+        local removed = { [index] = true }
+        Points.remove(removed)
+        Marks.remove(removed)
+        Blips.rebuild()
+        Nui.removed(index)
+    else
+        Polys.removeVertex(poly, index)
+        Walls.refresh(poly)
+        Nui.poly(poly, 0)
+    end
+
+    Nui.toast('undone')
+end

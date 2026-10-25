@@ -131,15 +131,16 @@ function Points.get(index)
     return List[index]
 end
 
+---@param coords vector3
+---@param heading number
 ---@return integer?
-function Points.add()
+function Points.addAt(coords, heading)
     local index = #List + 1
     if index > LIMIT then return nil end
 
-    local coords, heading = capture()
     List[index] = {
-        coords = coords,
-        heading = heading,
+        coords = vec3(round(coords.x), round(coords.y), round(coords.z)),
+        heading = headingOf(heading),
         radius = radiusOf(CFG_RADIUS.default),
         label = '',
         model = '',
@@ -154,6 +155,11 @@ function Points.add()
     schedule()
 
     return index
+end
+
+---@return integer?
+function Points.add()
+    return Points.addAt(capture())
 end
 
 ---@param index integer

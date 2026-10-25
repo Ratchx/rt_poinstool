@@ -1,6 +1,6 @@
 import { fmt } from '../lib/format'
-import type { BlipRule, Bootstrap, Keys, MarkerRule, RadiusRule } from '../lib/types'
-import { blipRuleOf, keysOf, markerRuleOf, radiusOf } from '../lib/wire'
+import type { BlipRule, Bootstrap, Keys, MarkerRule, PolyRule, RadiusRule } from '../lib/types'
+import { blipRuleOf, keysOf, markerRuleOf, polyRuleOf, radiusOf } from '../lib/wire'
 
 const LOCALE: Record<string, string> = {
   title: 'Points Tool',
@@ -76,17 +76,55 @@ const LOCALE: Record<string, string> = {
   grounded: 'วางจุด %s ติดพื้นแล้ว',
   ground_failed: 'หาพื้นใต้จุดไม่เจอ ลองเข้าไปใกล้จุดก่อน',
   failed: 'ทำรายการไม่สำเร็จ',
+
+  poly: 'Poly',
+  poly_new: 'สร้าง Poly',
+  poly_name: 'Poly %s',
+  poly_edit: 'แก้ไข %s',
+  poly_pick: 'เลือก Poly จากรายการเพื่อแก้ไข',
+  poly_empty: 'ยังไม่มี Poly',
+  poly_empty_hint: 'กดสร้าง Poly แล้วกดวางด้วยเมาส์ เพื่อคลิกวางจุดยอดบนพื้น',
+  vertices: '%s จุดยอด',
+  vertex: 'จุดยอด %s',
+  vertex_pick: 'เลือกจุดยอดจากรายการเพื่อแก้ตำแหน่ง',
+  vertex_none: 'ยังไม่มีจุดยอด กดวางด้วยเมาส์แล้วคลิกบนพื้น',
+  thickness: 'ความหนา',
+  place: 'วางด้วยเมาส์',
+  flatten: 'เกลี่ย Z',
+  vertex_remove: 'ลบจุดยอด',
+  poly_remove: 'ลบ Poly',
+  poly_remove_confirm: 'กดอีกครั้งเพื่อลบ Poly',
+  poly_copy: 'คัดลอก Poly นี้',
+  export_points: 'จุด',
+  export_polys: 'Poly',
+  place_title: 'โหมดวางด้วยเมาส์',
+  place_point: 'กำลังวาง: จุด',
+  place_poly: 'กำลังวาง: จุดยอดของ %s',
+  place_click: 'วาง',
+  place_look: 'ค้างหมุนกล้อง',
+  place_undo: 'ย้อน',
+  place_exit: 'ออก',
+  mouse_left: 'คลิกซ้าย',
+  mouse_right: 'คลิกขวา',
+  vertex_added: 'เพิ่มจุดยอด %s ให้ %s แล้ว',
+  poly_full: 'สร้าง Poly ได้สูงสุด %s อัน',
+  vertex_full: 'Poly หนึ่งอันมีจุดยอดได้สูงสุด %s จุด',
+  undone: 'ย้อนการวางล่าสุดแล้ว',
+  flattened: 'เกลี่ย Z ของ %s แล้ว',
+  poly_removed: 'ลบ %s แล้ว',
+  copied_polys: 'คัดลอก %s Poly แล้ว',
 }
 
 class ConfigStore {
   scale = $state(1)
   locale = $state<Record<string, string>>({ ...LOCALE })
-  keys = $state<Keys>({ add: 'J', menu: 'F7' })
+  keys = $state<Keys>({ add: 'J', menu: 'F7', place: 'K', undo: 'BACK' })
   precision = $state(2)
   radius = $state<RadiusRule>({ default: 2, min: 0.1, max: 100, step: 0.1 })
   limit = $state(300)
   labelLength = $state(32)
   modelLength = $state(64)
+  poly = $state<PolyRule>({ thicknessMin: 0.5, thicknessMax: 200, limit: 50, vertices: 100 })
   marker = $state<MarkerRule>({ sizeMin: 0.05, sizeMax: 100 })
   blip = $state<BlipRule>({ spriteMax: 2000, colorMax: 255, scaleMin: 0.1, scaleMax: 5 })
 
@@ -109,6 +147,7 @@ class ConfigStore {
     this.radius = radiusOf(payload.radius, this.radius)
     this.blip = blipRuleOf(payload.blip, this.blip)
     this.marker = markerRuleOf(payload.marker, this.marker)
+    this.poly = polyRuleOf(payload.poly, this.poly)
     this.setKeys(payload.keys)
   }
 }

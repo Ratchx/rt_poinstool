@@ -1,4 +1,4 @@
-import type { ExportOptions, Point } from './types'
+import type { ExportOptions, Point, Poly } from './types'
 
 const INDENT = '    '
 
@@ -65,6 +65,29 @@ export function lineOf(point: Point, options: ExportOptions, digits: number): st
 
 export function exportOf(points: Point[], options: ExportOptions, digits: number): string {
   return points.map((point) => lineOf(point, options, digits)).join('\n')
+}
+
+export function polyBlockOf(poly: Poly, digits: number, withLabel: boolean): string {
+  const inner = INDENT.repeat(2)
+  const lines = [`${INDENT}{`]
+
+  if (withLabel && poly.label !== '') lines.push(`${inner}label = '${escapeLua(poly.label)}',`)
+  lines.push(`${inner}points = {`)
+
+  for (const vertex of poly.points) {
+    lines.push(`${INDENT.repeat(3)}vec3(${fixed(vertex.x, digits)}, ${fixed(vertex.y, digits)}, ${fixed(vertex.z, digits)}),`)
+  }
+
+  lines.push(`${inner}},`, `${inner}thickness = ${fixed(poly.thickness, digits)},`, `${INDENT}},`)
+
+  return lines.join('\n')
+}
+
+export function exportPolysOf(list: Poly[], digits: number, withLabel: boolean): string {
+  return list
+    .filter((poly) => poly.points.length > 0)
+    .map((poly) => polyBlockOf(poly, digits, withLabel))
+    .join('\n')
 }
 
 export function indexLabel(index: number): string {

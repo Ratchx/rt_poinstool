@@ -2,6 +2,7 @@
   import { quintOut } from 'svelte/easing'
   import { fade, fly } from 'svelte/transition'
   import { close, setVisible } from '../lib/api'
+  import { setTab } from '../lib/polyApi'
   import { fixed } from '../lib/format'
   import { config } from '../stores/config.svelte'
   import { panel } from '../stores/panel.svelte'
@@ -11,6 +12,9 @@
   import Export from './+export.svelte'
   import Keycap from './+keycap.svelte'
   import List from './+list.svelte'
+  import PolyEditor from './+polyeditor.svelte'
+  import PolyList from './+polylist.svelte'
+  import { polys } from '../stores/polys.svelte'
 </script>
 
 <section class="panel" transition:fly={{ x: 48, duration: 260, easing: quintOut }}>
@@ -41,11 +45,15 @@
   </header>
 
   <nav class="tabs">
-    <button class:on={panel.tab === 'list'} onclick={() => (panel.tab = 'list')}>
+    <button class:on={panel.tab === 'list'} onclick={() => setTab('list')}>
       {config.t('list')}
       <span class="num">{points.count}</span>
     </button>
-    <button class:on={panel.tab === 'export'} onclick={() => (panel.tab = 'export')}>
+    <button class:on={panel.tab === 'poly'} onclick={() => setTab('poly')}>
+      {config.t('poly')}
+      <span class="num">{polys.count}</span>
+    </button>
+    <button class:on={panel.tab === 'export'} onclick={() => setTab('export')}>
       {config.t('export')}
     </button>
   </nav>
@@ -53,6 +61,9 @@
   {#if panel.tab === 'list'}
     <List />
     <Editor />
+  {:else if panel.tab === 'poly'}
+    <PolyList />
+    <PolyEditor />
   {:else}
     <Export />
   {/if}

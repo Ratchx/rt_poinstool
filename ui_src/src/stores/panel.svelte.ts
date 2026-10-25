@@ -1,4 +1,4 @@
-import type { ExportOptions, Tab } from '../lib/types'
+import type { ExportMode, ExportOptions, Tab } from '../lib/types'
 
 const OPTIONS_KEY = 'poinstool:export'
 
@@ -25,6 +25,7 @@ function loadOptions(): ExportOptions {
 class PanelStore {
   open = $state(false)
   tab = $state<Tab>('list')
+  exportMode = $state<ExportMode>('points')
   options = $state<ExportOptions>(loadOptions())
 
   show() {

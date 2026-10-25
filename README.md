@@ -14,6 +14,8 @@
 | `J` | มาร์คจุดตรงที่ยืนอยู่ทันที ใช้รัศมีเริ่มต้นจาก `Config.Radius.default` |
 | `F7` | เปิดรายการจุด (มีเมาส์) |
 | `Esc` หรือ `F7` อีกครั้ง | ปิดรายการ |
+| `K` | เปิด/ปิดโหมดวางด้วยเมาส์ (ดูหัวข้อด้านล่าง) |
+| `Backspace` | ย้อนการวางล่าสุดในโหมดวางด้วยเมาส์ |
 
 ผู้เล่นเปลี่ยนปุ่มเองได้ที่ Settings → Key Bindings → FiveM (คำอธิบายเป็นภาษาอังกฤษ เพราะเมนูของเกมแสดงภาษาไทยไม่ได้)
 
@@ -78,7 +80,54 @@
 - ชื่อ blip ใช้ชื่อจุดถ้าเป็นภาษาอังกฤษ ถ้าไม่มีชื่อหรือเป็นภาษาไทยจะใช้ `Point #ลำดับ` (เกมแสดงภาษาไทยในแผนที่ไม่ได้)
 - blip เห็นคนเดียว แสดงพร้อมวง (ซ่อนวงแล้ว blip หายด้วย)
 
+### โหมดวางด้วยเมาส์
+
+กด `K` (หรือปุ่ม **วางด้วยเมาส์** ในหน้า Poly) เพื่อคลิกวางบนพื้นแทนการเดินไปยืน ใช้ได้ทั้งตอนเดินปกติและตอน noclip
+
+- มีเคอร์เซอร์ค้างบนจอ ชี้ที่พื้นหรือ object แล้วจะมีเส้นตั้งกับจุดเล็กบอกตำแหน่งที่จะวาง (ยิงแสงจากกล้องผ่านเคอร์เซอร์ ไกลสุด `Config.Place.distance`)
+- **คลิกซ้าย** = วาง ชี้ไปที่ฟ้าหรือที่ว่างจะไม่วาง
+- **ค้างคลิกขวา** = เคอร์เซอร์หาย หมุนกล้องได้ตามปกติ ปล่อยแล้วเคอร์เซอร์กลับมา ระหว่างโหมดนี้ยิง/เล็งอาวุธไม่ได้
+- `Backspace` = ย้อนสิ่งที่วางล่าสุด (ย้อนได้เฉพาะที่วางในรอบนี้ ทีละอัน)
+- `K` อีกครั้ง หรือ `Esc` = ออกจากโหมด กด `F7` เปิดรายการก็ออกจากโหมดให้เอง
+- จะวางอะไรขึ้นกับหน้าที่เลือกไว้ล่าสุด กล่องมุมขวาบนบอกไว้ตลอด:
+  - เลือก Poly ไว้ในแท็บ Poly → คลิกแต่ละครั้งเพิ่มจุดยอดต่อท้าย Poly นั้น มีเส้นประจากจุดยอดสุดท้ายมาที่เคอร์เซอร์ และจากเคอร์เซอร์ไปจุดยอดแรก ให้เห็นรูปก่อนคลิก
+  - นอกนั้น → คลิกแต่ละครั้งเพิ่มจุดใหม่ในรายการจุด ตำแหน่ง = พื้นที่คลิก + `Config.Place.point_lift` (ค่าเริ่มต้น 1 m เท่าระดับเอวตอนกด J) หันตามทิศกล้อง
+- เปิดโหมดแล้ววงจะแสดงเองถ้าซ่อนอยู่
+
+### Poly
+
+แท็บ **Poly** สร้างโซน poly แบบ `lib.zones.poly` ของ ox_lib ได้หลายอัน แยกจากรายการจุด
+
+- **สร้าง Poly** แล้วกด **วางด้วยเมาส์** คลิกวางจุดยอดเรียงรอบพื้นที่ (ลำดับจุดยอด = ลำดับที่คลิก) ครบแล้วกด `K` หรือ `Esc`
+- ในเกม Poly วาดเป็นกำแพงโปร่งแบบเดียวกับ debug ของ ox_lib สูง = **ความหนา** โดยมี Z ของแต่ละจุดยอดอยู่กลางกำแพง พร้อมเลขจุดยอด จุดยอดที่เลือกในรายการจะเป็นจุดใหญ่สีขาว
+- **ชื่อ** / **ความหนา** (scroll ทีละ ±0.5) / **สี** ของกำแพง แก้ได้และเห็นผลทันที
+- รายการจุดยอด: คลิกเลือกแล้วแก้ X / Y / Z ได้ (ช่อง Z scroll ทีละ ±0.5) หรือกด **ลบจุดยอด**
+- **เกลี่ย Z** ตั้ง Z ทุกจุดยอดให้เท่ากับค่าเฉลี่ย ox_lib ทำ poly ที่ Z ไม่เท่ากันให้แบนเองตอนสร้างโซน กดก่อนส่งออกจะได้เห็นรูปเหมือนตอนใช้จริง
+- **คัดลอก** = คัดลอก Poly นี้อันเดียว (มีชื่อถ้าตั้งไว้)
+- **ลบ Poly** กดสองครั้งเพื่อยืนยัน
+- จำนวนสูงสุด `Config.Poly.limit` อัน อันละไม่เกิน `Config.Poly.vertices` จุดยอด Poly เก็บใน KVP ของ client เหมือนรายการจุด
+
 ### หน้าส่งออก
+
+ด้านบนเลือกได้ว่าจะส่งออก **จุด** หรือ **Poly**
+
+**Poly** ได้ทีละก้อนแบบนี้ (Poly ที่ยังไม่มีจุดยอดจะไม่ออกมา ติ๊ก **ใส่ชื่อ** เพื่อใส่ `label`)
+
+```lua
+    {
+        label = 'ลานจอดรถ',
+        points = {
+            vec3(-1593.12, -1047.66, 13.02),
+            vec3(-1571.40, -1032.18, 13.02),
+            vec3(-1560.88, -1049.25, 13.40),
+        },
+        thickness = 6.00,
+    },
+```
+
+ใช้กับ ox_lib ได้ตรง ๆ เช่น `lib.zones.poly({ points = zone.points, thickness = zone.thickness })`
+
+**จุด**:
 
 เลือกรูปแบบแล้วกด **คัดลอกทั้งหมด** ได้ข้อความเยื้อง 4 ช่อง มี comma ท้ายบรรทัด วางลงใน table ของ config ได้เลย
 
@@ -113,6 +162,8 @@
 | `Config.Command.menu` | `'poinstool'` | ชื่อคำสั่งเปิดรายการ พิมพ์ใน F8 ได้ |
 | `Config.Key.add` | `'J'` | ปุ่มเริ่มต้นของการเพิ่มจุด ใช้ชื่อปุ่มของ FiveM เช่น `'J'`, `'F6'`, `'NUMPAD5'` ใส่ `''` = ไม่ผูกปุ่ม |
 | `Config.Key.menu` | `'F7'` | ปุ่มเริ่มต้นของการเปิดรายการ |
+| `Config.Command.place` / `Config.Key.place` | `'poinstool_place'` / `'K'` | คำสั่งและปุ่มเปิด/ปิดโหมดวางด้วยเมาส์ |
+| `Config.Command.undo` / `Config.Key.undo` | `'poinstool_undo'` / `'BACK'` | คำสั่งและปุ่มย้อนการวางล่าสุด (ทำงานเฉพาะตอนอยู่ในโหมดวางด้วยเมาส์) |
 | `Config.Radius.default` | `2.0` | รัศมี (เมตร) ของจุดที่เพิ่งกด J |
 | `Config.Radius.min` | `0.1` | รัศมีต่ำสุดที่ตั้งได้ ต้องมากกว่า 0 (สเกล log) |
 | `Config.Radius.max` | `100.0` | รัศมีสูงสุดที่ตั้งได้ ต้องมากกว่า `min` |
@@ -137,6 +188,14 @@
 | `Config.Marker.size` | `vec3(1.5, 1.5, 0.5)` | ขนาด marker (X, Y, Z) ของจุดใหม่ |
 | `Config.Marker.color` | `{ 255, 255, 255, 90 }` | สี RGBA ของ marker ของจุดใหม่ (0–255) |
 | `Config.Marker.size_min` / `size_max` | `0.05` / `100.0` | ช่วงขนาด marker ที่ตั้งได้ ค่านอกช่วงจะถูกปัดเข้าขอบ |
+| `Config.Poly.thickness` | `4.0` | ความหนา (ความสูงกำแพง) ของ Poly ใหม่ เท่าค่าเริ่มต้นของ `lib.zones.poly` |
+| `Config.Poly.thickness_min` / `thickness_max` | `0.5` / `200.0` | ช่วงความหนาที่ตั้งได้ |
+| `Config.Poly.color` | `{ 255, 42, 24, 90 }` | สี RGBA ของกำแพง Poly ใหม่ (แดงแบบ debug ของ ox_lib) |
+| `Config.Poly.limit` | `50` | จำนวน Poly สูงสุด |
+| `Config.Poly.vertices` | `100` | จุดยอดสูงสุดต่อ Poly |
+| `Config.Place.distance` | `1000.0` | ระยะไกลสุดที่เคอร์เซอร์ยิงหาพื้น (เมตร) |
+| `Config.Place.point_lift` | `1.0` | ยกจุดที่คลิกวางขึ้นจากพื้นกี่เมตร ให้ได้ Z แบบเดียวกับกด J ใส่ `0.0` ถ้าอยากได้ Z ที่พื้นพอดี (ไม่มีผลกับจุดยอด Poly) |
+| `Config.Place.flags` | `(1 << 0) \| (1 << 4)` | สิ่งที่เคอร์เซอร์ชนได้ (trace flags ของ shape test) ค่าเริ่มต้น = พื้นโลก + object ดูค่าอื่นได้ที่ eTraceFlags |
 | `Config.Draw.distance` | `80.0` | เห็นวงของจุดเมื่ออยู่ห่างไม่เกินระยะนี้ + รัศมีของจุด |
 | `Config.Draw.heading` | `1.2` | ความยาวเส้นชี้ทิศ (เมตร) |
 | `Config.Draw.dot` | `0.08` | ขนาดจุดตรงตำแหน่งจริง |
@@ -177,12 +236,16 @@ Lua → UI (`{ action, payload }`)
 
 | action | payload |
 |---|---|
-| `hydrate` | `{ scale, locale, keys = { add, menu }, precision, radius = { default, min, max, step }, limit, labelLength, modelLength, blip = { spriteMax, colorMax, scaleMin, scaleMax }, marker = { sizeMin, sizeMax }, visible, points }` |
+| `hydrate` | `{ scale, locale, keys = { add, menu }, precision, radius = { default, min, max, step }, limit, labelLength, modelLength, blip = { spriteMax, colorMax, scaleMin, scaleMax }, marker = { sizeMin, sizeMax }, poly = { thicknessMin, thicknessMax, limit, vertices }, visible, points, polys }` |
 | `open` | `{ keys }` |
 | `close` | – |
 | `add` | `{ index, point, keys }` |
 | `full` | – |
 | `visible` | `boolean` |
+| `place` | `{ active, target, keys }` เปิด/ปิดโหมดวางด้วยเมาส์ `target` = ลำดับ Poly หรือ 0 = จุด |
+| `poly` | `{ index, poly, added }` Poly ที่เปลี่ยนจากฝั่ง Lua (`added` = ลำดับจุดยอดที่เพิ่งวาง หรือ 0) |
+| `removed` | `{ indexes }` จุดที่ Lua ลบเอง (ย้อนการวาง) |
+| `toast` | `{ key, args }` ข้อความจาก locale `ui` |
 
 `point` = `{ x, y, z, h, r, label, model, blip, sprite, color, scale, area, size = [x, y, z], tint = [r, g, b, a] }`
 
@@ -195,5 +258,14 @@ UI → Lua (ตอบ `1` / `0` ทุกครั้ง)
 - `here { index }` และ `ground { index }` ตอบเป็น `point` ที่แก้แล้ว
 - `teleport { index }`
 - `remove { indexes }` ลบทีละจุดหรือหลายจุดก็ใช้ตัวนี้ (`indexes` = array ของลำดับจุด ห้ามซ้ำ)
+- `polyCreate` ตอบ `{ index, poly }` หรือ `0` ถ้าเต็ม
+- `polyUpdate { index, label, thickness, color }`, `polyRemove { index }`, `polySelect { index, vertex }` (0 = ไม่เลือก และเป็นเป้าหมายของโหมดเมาส์)
+- `polyFlatten { index }` ตอบเป็น `poly` ที่เกลี่ยแล้ว
+- `vertexUpdate { index, vertex, x, y, z }`, `vertexRemove { index, vertex }`
+- `place { index }` ปิดรายการแล้วเข้าโหมดวางด้วยเมาส์ (`index` = Poly หรือ 0 = จุด)
+
+`poly` = `{ label, thickness, color = [r, g, b, a], points = [{ x, y, z }, ...] }`
 
 KVP `points` เก็บเป็น JSON array ของแถว `[x, y, z, heading, radius, label, model, blip, sprite, color, scale, area, sizeX, sizeY, sizeZ, r, g, b, a]` แถวจากเวอร์ชันก่อนที่มี 6 หรือ 12 ช่องยังโหลดได้ ช่องที่ขาดใช้ค่าเริ่มต้นจาก config
+
+KVP `polys` เก็บแถวละ Poly: `[label, thickness, r, g, b, a, x1, y1, z1, x2, y2, z2, ...]`

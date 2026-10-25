@@ -27,9 +27,31 @@ export interface BlipRule {
   scaleMax: number
 }
 
+export interface Vertex {
+  x: number
+  y: number
+  z: number
+}
+
+export interface Poly {
+  label: string
+  thickness: number
+  color: number[]
+  points: Vertex[]
+}
+
+export interface PolyRule {
+  thicknessMin: number
+  thicknessMax: number
+  limit: number
+  vertices: number
+}
+
 export interface Keys {
   add: string
   menu: string
+  place: string
+  undo: string
 }
 
 export interface RadiusRule {
@@ -50,6 +72,8 @@ export interface Bootstrap {
   modelLength?: number
   blip?: Partial<BlipRule>
   marker?: Partial<MarkerRule>
+  poly?: Partial<PolyRule>
+  polys?: unknown
   visible?: boolean
   points?: unknown
 }
@@ -73,4 +97,27 @@ export interface ExportOptions {
   blip: boolean
 }
 
-export type Tab = 'list' | 'export'
+export interface PlacePayload {
+  active?: boolean
+  target?: number
+  keys?: Partial<Keys>
+}
+
+export interface PolyPayload {
+  index?: number
+  poly?: unknown
+  added?: number
+}
+
+export interface ToastPayload {
+  key?: string
+  args?: unknown
+}
+
+export interface RemovedPayload {
+  indexes?: unknown
+}
+
+export type Tab = 'list' | 'poly' | 'export'
+
+export type ExportMode = 'points' | 'polys'

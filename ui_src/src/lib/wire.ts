@@ -1,4 +1,4 @@
-import type { BlipRule, Keys, MarkerRule, Point, RadiusRule } from './types'
+import type { BlipRule, Keys, MarkerRule, Point, Poly, PolyRule, RadiusRule, Vertex } from './types'
 
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
@@ -41,6 +41,62 @@ export function pointOf(value: unknown): Point | null {
   }
 }
 
+const DEFAULT_POLY_COLOR = [255, 42, 24, 90]
+
+function vertexOf(value: unknown): Vertex | null {
+  if (!value || typeof value !== 'object') return null
+
+  const raw = value as Record<string, unknown>
+  if (!finite(raw.x) || !finite(raw.y) || !finite(raw.z)) return null
+
+  return { x: raw.x, y: raw.y, z: raw.z }
+}
+
+export function polyOf(value: unknown): Poly | null {
+  if (!value || typeof value !== 'object') return null
+
+  const raw = value as Record<string, unknown>
+  const vertices: Vertex[] = []
+
+  if (Array.isArray(raw.points)) {
+    for (const item of raw.points) {
+      const vertex = vertexOf(item)
+      if (vertex) vertices.push(vertex)
+    }
+  }
+
+  return {
+    label: textOf(raw.label),
+    thickness: numberOf(raw.thickness, 4),
+    color: numbersOf(raw.color, DEFAULT_POLY_COLOR),
+    points: vertices,
+  }
+}
+
+export function polysOf(value: unknown): Poly[] {
+  if (!Array.isArray(value)) return []
+
+  const list: Poly[] = []
+
+  for (const item of value) {
+    const poly = polyOf(item)
+    if (poly) list.push(poly)
+  }
+
+  return list
+}
+
+export function polyRuleOf(value: Partial<PolyRule> | undefined, current: PolyRule): PolyRule {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return current
+
+  return {
+    thicknessMin: numberOf(value.thicknessMin, current.thicknessMin),
+    thicknessMax: numberOf(value.thicknessMax, current.thicknessMax),
+    limit: numberOf(value.limit, current.limit),
+    vertices: numberOf(value.vertices, current.vertices),
+  }
+}
+
 export function markerRuleOf(value: Partial<MarkerRule> | undefined, current: MarkerRule): MarkerRule {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return current
 
@@ -80,6 +136,8 @@ export function keysOf(value: Partial<Keys> | undefined, current: Keys): Keys {
   return {
     add: textOf(value.add, current.add),
     menu: textOf(value.menu, current.menu),
+    place: textOf(value.place, current.place),
+    undo: textOf(value.undo, current.undo),
   }
 }
 

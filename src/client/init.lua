@@ -35,6 +35,20 @@ local function indexesOf(data)
     return removed
 end
 
+local function polyOf(data)
+    local index = type(data) == 'table' and math.tointeger(data.index)
+    if not index or not Polys.get(index) then return nil end
+
+    return index
+end
+
+local function vertexOf(data, poly)
+    local vertex = math.tointeger(data.vertex)
+    if not vertex or not Polys.get(poly).points[vertex] then return nil end
+
+    return vertex
+end
+
 local function numberOf(value)
     if type(value) ~= 'number' or value ~= value or value == math.huge or value == -math.huge then return nil end
 
@@ -97,8 +111,15 @@ end
 
 local function setVisible(value)
     Blips.setVisible(value)
+    Walls.setVisible(value)
 
     return Marks.setVisible(value)
+end
+
+local function startPlace(poly)
+    if setVisible(true) then Nui.visible(true) end
+
+    Place.start(poly)
 end
 
 local function addPoint()
@@ -247,26 +268,119 @@ RegisterNuiCallback('clear', function(_, cb)
     Blips.rebuild()
 end)
 
+RegisterNuiCallback('polyCreate', function(_, cb)
+    local index = Polys.create()
+    if not index then return cb(0) end
+
+    cb({ index = index, poly = Polys.wire(index) })
+end)
+
+RegisterNuiCallback('polyUpdate', function(data, cb)
+    local index = polyOf(data)
+    if not index then return cb(0) end
+
+    local label, thickness, color = labelOf(data.label), numberOf(data.thickness), tintOf(data.color)
+    if not (label and thickness and color) then return cb(0) end
+
+    cb(1)
+    Polys.update(index, label, thickness, color)
+    Walls.refresh(index)
+end)
+
+RegisterNuiCallback('polyRemove', function(data, cb)
+    local index = polyOf(data)
+    if not index then return cb(0) end
+
+    cb(1)
+    Polys.remove(index)
+    Walls.remove(index)
+    Place.onPolyRemoved(index)
+end)
+
+RegisterNuiCallback('polySelect', function(data, cb)
+    local index = polyOf(data) or 0
+    local vertex = index > 0 and vertexOf(data, index) or 0
+
+    cb(1)
+    Walls.select(index, vertex)
+    Place.setTarget(index)
+end)
+
+RegisterNuiCallback('polyFlatten', function(data, cb)
+    local index = polyOf(data)
+    if not index or not Polys.flatten(index) then return cb(0) end
+
+    Walls.refresh(index)
+    cb(Polys.wire(index))
+end)
+
+RegisterNuiCallback('vertexUpdate', function(data, cb)
+    local index = polyOf(data)
+    local vertex = index and vertexOf(data, index)
+    if not vertex then return cb(0) end
+
+    local x, y, z = numberOf(data.x), numberOf(data.y), numberOf(data.z)
+    if not (x and y and z) then return cb(0) end
+
+    cb(1)
+    Polys.setVertex(index, vertex, vec3(x, y, z))
+    Walls.refresh(index)
+end)
+
+RegisterNuiCallback('vertexRemove', function(data, cb)
+    local index = polyOf(data)
+    local vertex = index and vertexOf(data, index)
+    if not vertex then return cb(0) end
+
+    cb(1)
+    Polys.removeVertex(index, vertex)
+    Walls.refresh(index)
+end)
+
+RegisterNuiCallback('place', function(data, cb)
+    cb(1)
+    Nui.close(false)
+    startPlace(polyOf(data) or 0)
+end)
+
 RegisterCommand(CFG_COMMAND.add, function()
     addPoint()
 end, false)
 
 RegisterCommand(CFG_COMMAND.menu, function()
+    Place.stop()
     Nui.open()
+end, false)
+
+RegisterCommand(CFG_COMMAND.place, function()
+    if Place.isActive() then return Place.stop() end
+
+    startPlace()
+end, false)
+
+RegisterCommand(CFG_COMMAND.undo, function()
+    Place.undo()
 end, false)
 
 RegisterKeyMapping(CFG_COMMAND.add, CFG_LOCALE.key_add, 'keyboard', CFG_KEY.add)
 RegisterKeyMapping(CFG_COMMAND.menu, CFG_LOCALE.key_menu, 'keyboard', CFG_KEY.menu)
+RegisterKeyMapping(CFG_COMMAND.place, CFG_LOCALE.key_place, 'keyboard', CFG_KEY.place)
+RegisterKeyMapping(CFG_COMMAND.undo, CFG_LOCALE.key_undo, 'keyboard', CFG_KEY.undo)
 
 AddEventHandler('onResourceStop', function(resource)
     if resource ~= cache.resource then return end
 
+    Place.stop()
     Points.flush()
+    Polys.flush()
     Marks.teardown()
     Blips.teardown()
+    Walls.teardown()
     Nui.close(false)
 end)
 
 Points.load()
+Polys.load()
 Marks.build()
 Blips.build()
+Walls.build()
