@@ -19,6 +19,8 @@ local GROUND_PROBE <const> = 0.5
 local GROUND_FALLBACK <const> = 1.0
 local LABEL_LIFT <const> = 0.35
 local RING_LIFT <const> = 0.03
+local ARROW_BACK <const> = 0.3
+local ARROW_SIDE <const> = 0.15
 local HasModelLoaded <const> = HasModelLoaded
 local GetGameTimer <const> = GetGameTimer
 local DrawLine <const> = DrawLine
@@ -97,7 +99,7 @@ local function spawnProp(shape)
         local prop = CreateObjectNoOffset(hash, coords.x, coords.y, coords.z, false, false, false)
 
         SetModelAsNoLongerNeeded(hash)
-        SetEntityHeading(prop, shape.heading)
+        SetEntityRotation(prop, 0.0, 0.0, shape.heading, 2, false)
         FreezeEntityPosition(prop, true)
         SetEntityCollision(prop, PROP_COLLISION, PROP_COLLISION)
         shape.prop = prop
@@ -145,7 +147,11 @@ local function draw(self)
 
     DrawMarker(MARKER_SPHERE, x, y, z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, DOT_SIZE, DOT_SIZE, DOT_SIZE, LINE[1], LINE[2], LINE[3], LINE[4], false, false, 2, false, nil, nil, false)
     DrawLine(x, y, ground, x, y, z, LINE[1], LINE[2], LINE[3], LINE[4])
-    DrawLine(x, y, z, x + self.dx, y + self.dy, z, LINE[1], LINE[2], LINE[3], LINE[4])
+    local tipX, tipY = x + self.dx, y + self.dy
+
+    DrawLine(x, y, z, tipX, tipY, z, LINE[1], LINE[2], LINE[3], LINE[4])
+    DrawLine(tipX, tipY, z, x + self.leftX, y + self.leftY, z, LINE[1], LINE[2], LINE[3], LINE[4])
+    DrawLine(tipX, tipY, z, x + self.rightX, y + self.rightY, z, LINE[1], LINE[2], LINE[3], LINE[4])
 
     if SHOW_LABEL then drawLabel(x, y, z + LABEL_LIFT, self.text) end
 end
@@ -172,11 +178,19 @@ local function patch(shape, index, point)
     shape.size = point.size
     shape.tint = point.tint
     shape.heading = heading
-    shape.dx = -math.sin(angle) * HEADING_LENGTH
-    shape.dy = math.cos(angle) * HEADING_LENGTH
+    local forwardX, forwardY = -math.sin(angle), math.cos(angle)
+    local backX, backY = forwardX * (HEADING_LENGTH - ARROW_BACK), forwardY * (HEADING_LENGTH - ARROW_BACK)
+    local sideX, sideY = forwardY * ARROW_SIDE, -forwardX * ARROW_SIDE
+
+    shape.dx = forwardX * HEADING_LENGTH
+    shape.dy = forwardY * HEADING_LENGTH
+    shape.leftX = backX - sideX
+    shape.leftY = backY - sideY
+    shape.rightX = backX + sideX
+    shape.rightY = backY + sideY
     shape.text = textOf(index, point)
 
-    if shape.prop then SetEntityHeading(shape.prop, heading) end
+    if shape.prop then SetEntityRotation(shape.prop, 0.0, 0.0, heading, 2, false) end
 end
 
 local function carry(from, to)

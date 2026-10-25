@@ -9,13 +9,16 @@ local PROBE_OPTIONS <const> = 7
 local PROBE_PENDING <const> = 1
 local PROBE_HIT <const> = 1
 local ROTATION_ORDER <const> = 2
+local FACE_CAMERA <const> = 180.0
+local PAD_PLAYER <const> = 0
+local PAD_FRONTEND <const> = 2
 local CONTROL_ATTACK <const> = 24
 local CONTROL_AIM <const> = 25
 local CONTROL_PAUSE <const> = 200
 local CONTROL_LOOK_X <const> = 1
 local CONTROL_LOOK_Y <const> = 2
-local CONTROL_CURSOR_X <const> = 239
-local CONTROL_CURSOR_Y <const> = 240
+local CONTROL_CURSOR_ACCEPT <const> = 237
+local CONTROL_CURSOR_CANCEL <const> = 238
 local BLOCKED_CONTROLS <const> = { 24, 25, 37, 140, 141, 142, 257, 263, 264, 200 }
 local PREVIEW_HEIGHT <const> = vec3(0.0, 0.0, 1.5)
 local PREVIEW_DOT <const> = 0.12
@@ -24,11 +27,11 @@ local DisableControlAction <const> = DisableControlAction
 local IsDisabledControlPressed <const> = IsDisabledControlPressed
 local IsDisabledControlJustPressed <const> = IsDisabledControlJustPressed
 local SetMouseCursorThisFrame <const> = SetMouseCursorThisFrame
-local GetControlNormal <const> = GetControlNormal
+local GetNuiCursorPosition <const> = GetNuiCursorPosition
+local GetActualScreenResolution <const> = GetActualScreenResolution
 local GetFinalRenderedCamCoord <const> = GetFinalRenderedCamCoord
 local GetFinalRenderedCamRot <const> = GetFinalRenderedCamRot
 local GetFinalRenderedCamFov <const> = GetFinalRenderedCamFov
-local GetAspectRatio <const> = GetAspectRatio
 local StartShapeTestLosProbe <const> = StartShapeTestLosProbe
 local GetShapeTestResult <const> = GetShapeTestResult
 local DrawLine <const> = DrawLine
@@ -42,12 +45,28 @@ local target = 0
 local probe = nil
 local hover = nil
 
+local function cursorOf()
+    local width, height = GetActualScreenResolution()
+    local x, y = GetNuiCursorPosition()
+
+    return x / width, y / height, width / height
+end
+
+local function clicked()
+    return IsDisabledControlJustPressed(PAD_PLAYER, CONTROL_ATTACK) or IsDisabledControlJustPressed(PAD_FRONTEND, CONTROL_CURSOR_ACCEPT)
+end
+
+local function looking()
+    return IsDisabledControlPressed(PAD_PLAYER, CONTROL_AIM) or IsDisabledControlPressed(PAD_FRONTEND, CONTROL_CURSOR_CANCEL)
+end
+
 local function rayFromCursor()
     local origin = GetFinalRenderedCamCoord()
     local rotation = GetFinalRenderedCamRot(ROTATION_ORDER)
     local spread = math.tan(math.rad(GetFinalRenderedCamFov()) * 0.5)
-    local screenX = (GetControlNormal(0, CONTROL_CURSOR_X) * 2.0 - 1.0) * spread * GetAspectRatio(false)
-    local screenY = (1.0 - GetControlNormal(0, CONTROL_CURSOR_Y) * 2.0) * spread
+    local cursorX, cursorY, aspect = cursorOf()
+    local screenX = (cursorX * 2.0 - 1.0) * spread * aspect
+    local screenY = (1.0 - cursorY * 2.0) * spread
     local pitch, yaw = math.rad(rotation.x), math.rad(rotation.z)
     local cosPitch = math.cos(pitch)
     local forward = vec3(-math.sin(yaw) * cosPitch, math.cos(yaw) * cosPitch, math.sin(pitch))
@@ -130,27 +149,33 @@ end
 local function place()
     if target > 0 then return placeVertex() end
 
-    local _, _, heading = rayFromCursor()
-    placePoint(heading)
+    local _, _, yaw = rayFromCursor()
+    placePoint(math.floor(yaw + FACE_CAMERA + 0.5) % 360)
 end
 
 local function run()
     CreateThread(function()
         while active do
             for i = 1, #BLOCKED_CONTROLS do
-                DisableControlAction(0, BLOCKED_CONTROLS[i], true)
+                DisableControlAction(PAD_PLAYER, BLOCKED_CONTROLS[i], true)
             end
 
-            if IsDisabledControlJustPressed(0, CONTROL_PAUSE) then
+            if IsDisabledControlJustPressed(PAD_PLAYER, CONTROL_PAUSE) then
                 Place.stop()
-            elseif not IsDisabledControlPressed(0, CONTROL_AIM) then
-                DisableControlAction(0, CONTROL_LOOK_X, true)
-                DisableControlAction(0, CONTROL_LOOK_Y, true)
+            elseif not looking() then
+                DisableControlAction(PAD_PLAYER, CONTROL_LOOK_X, true)
+                DisableControlAction(PAD_PLAYER, CONTROL_LOOK_Y, true)
                 SetMouseCursorThisFrame()
                 updateHover()
                 drawPreview()
 
-                if hover and IsDisabledControlJustPressed(0, CONTROL_ATTACK) then place() end
+                if clicked() then
+                    if hover then
+                        place()
+                    else
+                        Nui.toast('place_miss')
+                    end
+                end
             end
 
             Wait(0)

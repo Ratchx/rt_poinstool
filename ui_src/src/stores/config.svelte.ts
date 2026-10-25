@@ -104,6 +104,7 @@ const LOCALE: Record<string, string> = {
   place_look: 'ค้างหมุนกล้อง',
   place_undo: 'ย้อน',
   place_exit: 'ออก',
+  place_miss: 'ไม่เจอพื้นตรงเคอร์เซอร์ ลองชี้ไปที่พื้นหรือ object',
   mouse_left: 'คลิกซ้าย',
   mouse_right: 'คลิกขวา',
   vertex_added: 'เพิ่มจุดยอด %s ให้ %s แล้ว',
