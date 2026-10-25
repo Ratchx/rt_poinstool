@@ -7,7 +7,6 @@ local PREVIEW <const> = Config.Draw.line
 local VERTEX_LIMIT <const> = Config.Poly.vertices
 local PROBE_OPTIONS <const> = 7
 local PROBE_PENDING <const> = 1
-local PROBE_HIT <const> = 1
 local ROTATION_ORDER <const> = 2
 local FACE_CAMERA <const> = 180.0
 local PAD_PLAYER <const> = 0
@@ -29,9 +28,8 @@ local IsDisabledControlJustPressed <const> = IsDisabledControlJustPressed
 local SetMouseCursorThisFrame <const> = SetMouseCursorThisFrame
 local GetNuiCursorPosition <const> = GetNuiCursorPosition
 local GetActualScreenResolution <const> = GetActualScreenResolution
-local GetFinalRenderedCamCoord <const> = GetFinalRenderedCamCoord
+local GetWorldCoordFromScreenCoord <const> = GetWorldCoordFromScreenCoord
 local GetFinalRenderedCamRot <const> = GetFinalRenderedCamRot
-local GetFinalRenderedCamFov <const> = GetFinalRenderedCamFov
 local StartShapeTestLosProbe <const> = StartShapeTestLosProbe
 local GetShapeTestResult <const> = GetShapeTestResult
 local DrawLine <const> = DrawLine
@@ -45,13 +43,6 @@ local target = 0
 local probe = nil
 local hover = nil
 
-local function cursorOf()
-    local width, height = GetActualScreenResolution()
-    local x, y = GetNuiCursorPosition()
-
-    return x / width, y / height, width / height
-end
-
 local function clicked()
     return IsDisabledControlJustPressed(PAD_PLAYER, CONTROL_ATTACK) or IsDisabledControlJustPressed(PAD_FRONTEND, CONTROL_CURSOR_ACCEPT)
 end
@@ -60,21 +51,15 @@ local function looking()
     return IsDisabledControlPressed(PAD_PLAYER, CONTROL_AIM) or IsDisabledControlPressed(PAD_FRONTEND, CONTROL_CURSOR_CANCEL)
 end
 
-local function rayFromCursor()
-    local origin = GetFinalRenderedCamCoord()
-    local rotation = GetFinalRenderedCamRot(ROTATION_ORDER)
-    local spread = math.tan(math.rad(GetFinalRenderedCamFov()) * 0.5)
-    local cursorX, cursorY, aspect = cursorOf()
-    local screenX = (cursorX * 2.0 - 1.0) * spread * aspect
-    local screenY = (1.0 - cursorY * 2.0) * spread
-    local pitch, yaw = math.rad(rotation.x), math.rad(rotation.z)
-    local cosPitch = math.cos(pitch)
-    local forward = vec3(-math.sin(yaw) * cosPitch, math.cos(yaw) * cosPitch, math.sin(pitch))
-    local right = vec3(math.cos(yaw), math.sin(yaw), 0.0)
-    local up = vec3(right.y * forward.z, -right.x * forward.z, right.x * forward.y - right.y * forward.x)
-    local direction = forward + right * screenX + up * screenY
+local function didHit(value)
+    return value == true or value == 1
+end
 
-    return origin, direction / #direction, rotation.z
+local function rayFromCursor()
+    local width, height = GetActualScreenResolution()
+    local x, y = GetNuiCursorPosition()
+
+    return GetWorldCoordFromScreenCoord(x / width, y / height)
 end
 
 local function updateHover()
@@ -83,7 +68,7 @@ local function updateHover()
         if status == PROBE_PENDING then return end
 
         probe = nil
-        hover = hit == PROBE_HIT and coords or nil
+        hover = didHit(hit) and coords or nil
     end
 
     local origin, direction = rayFromCursor()
@@ -149,7 +134,7 @@ end
 local function place()
     if target > 0 then return placeVertex() end
 
-    local _, _, yaw = rayFromCursor()
+    local yaw = GetFinalRenderedCamRot(ROTATION_ORDER).z
     placePoint(math.floor(yaw + FACE_CAMERA + 0.5) % 360)
 end
 
